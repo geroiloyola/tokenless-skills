@@ -2,6 +2,32 @@
 
 All notable changes to tokenless-skills. Format inspired by Keep a Changelog; not every patch is listed.
 
+## [Unreleased] — Tokenless Standard, Fase 3-4 (close-out, zero model spend)
+
+### Added
+- `evals/LOG.md` (Fase 3): round 0 recorded with verbatim probe output —
+  `claude 2.1.329` installed, `claude -p` probe returned "Not logged in" → the
+  single approved verification session is **BLOCKED on interactive host
+  authentication**, not on code. Ablation hypotheses preregistered for round
+  1+ (verify-done traps first); deletion pass deferred until the claim is met.
+- `RELEASE.md` hard gate: no future release may publish capability or token
+  comparisons without at least one adapter-verified session with real host
+  `usage` in `evals/results/`.
+
+### Changed
+- README: "Claims, honestly" updated to round-0 reality (harness built,
+  mechanics-tested, zero runs); project layout documents `evals/`.
+- `docs/BASELINE.md` item 4 marked closed (prompts/ orphan removed).
+
+### Removed
+- `prompts/task-templates.md`: orphan since Fase 1 (eval-harness now points to
+  `evals/tasks/README.md`).
+
+### Not run (honest)
+- Zero benchmark sessions executed; every A/B/C/D comparison remains a
+  preregistered hypothesis. Next executable step is unchanged and documented
+  in `evals/LOG.md` round 1.
+
 ## [Unreleased] — Tokenless Standard, Fase 2 (harness, no runs yet)
 
 ### Added
