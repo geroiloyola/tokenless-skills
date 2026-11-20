@@ -17,6 +17,7 @@ set -euo pipefail
 shopt -s nullglob
 
 VERSION="1.0.0"
+KNOWN_HOST_IDS=" vibe claude codex opencode gemini antigravity cursor agents opencat "
 AGENTS=""
 SCOPE="user"
 DRY_RUN=0
@@ -69,6 +70,7 @@ Flags:
 
 Backups of replaced skills go to \$HOME/.tsk-backup/ (user scope) or
 ./.tsk-backup/ (project scope), one timestamped directory per overwrite.
+Backups are never auto-deleted; prune .tsk-backup manually when convenient.
 EOF
 }
 case "${1:-}" in
@@ -80,7 +82,22 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --agent|--host)
       [ $# -ge 2 ] || { echo "❌ $1 needs a value" >&2; exit 2; }
-      AGENTS="$(echo "$2" | tr ',' ' ')"; shift 2 ;;
+      AGENTS="$(echo "$2" | tr ',' ' ')"
+      # validate host ids up front; typos must not be silently dropped
+      checked="" a=""
+      for a in $AGENTS; do
+        case "$KNOWN_HOST_IDS" in
+          *" $a "*) checked="$checked $a" ;;
+          *) echo "⚠️  '$a' is not a recognized host id — ignored." >&2
+             echo "    known ids:$KNOWN_HOST_IDS" >&2 ;;
+        esac
+      done
+      if [ -z "$checked" ] && [ -n "$AGENTS" ]; then
+        echo "❌ no recognized host id in '$2' (known:$KNOWN_HOST_IDS)" >&2
+        exit 2
+      fi
+      AGENTS="$(echo "$checked" | xargs)"
+      shift 2 ;;
     --scope)
       [ $# -ge 2 ] || { echo "❌ --scope needs a value" >&2; exit 2; }
       case "$2" in user|project) SCOPE="$2" ;; *) echo "❌ invalid --scope '$2' (use user|project)" >&2; exit 2 ;; esac
@@ -162,15 +179,46 @@ kit_names() {
 
 uninstall_host() {
   local dest="$1" name dir removed=0
+  local bdir ts
   for name in $(kit_names); do
     dir="${dest%/}/$name"
     [ -d "$dir" ] || continue
+    if [ -L "$dir" ]; then
+      echo "  ↳ $name is a symlink — left in place (install.sh never follows it)."
+      continue
+    fi
     # ownership proof: frontmatter must name this skill exactly
     if ! head -5 "$dir/SKILL.md" 2>/dev/null | grep -q "^name: $name\$"; then
       echo "  ⚠️  $name exists but is not the kit's original — left in place."
       continue
     fi
-    echo "  remove $name"
+    # integrity check: identical to the kit's copy → safe to remove outright.
+    # Anything else (user-customized or installed from an older kit version)
+    # is MOVED to .tsk-backup/, never deleted. Conservative over destructive.
+    local customized=0
+    if ! diff -qr "$KIT/skills/$name" "$dir" >/dev/null 2>&1; then
+      customized=1
+    fi
+    if [ "$customized" -eq 1 ]; then
+      if [ "$DRY_RUN" -eq 0 ]; then
+        [ "$ASSUME_YES" -eq 1 ] || { echo "  ⚠️  $name is customized or an older kit version"; removed=$((removed + 1)); continue; }
+        ts="$(date +%Y%m%d-%H%M%S)-$$"
+        [ -d "$BACKUP_DIR" ] || mkdir -p "$BACKUP_DIR"
+        bdir="$BACKUP_DIR/$name-$ts"
+        while [ -e "$bdir" ]; do bdir="$bdir-x"; done
+        if mv "$dir" "$bdir" && [ -f "$bdir/SKILL.md" ]; then
+          echo "  ⚠️  $name is customized or an older kit version — moved to $bdir (not deleted)."
+        else
+          echo "❌ backup verification failed for $name; aborting uninstall (no data touched)." >&2
+          exit 1
+        fi
+      else
+        echo "  backup + remove $name (customized or older kit version)"
+      fi
+      removed=$((removed + 1))
+      continue
+    fi
+    echo "  remove $name (unmodified)"
     removed=$((removed + 1))
     if [ "$DRY_RUN" -eq 0 ] && [ "$ASSUME_YES" -eq 1 ]; then
       rm -rf "$dir"
@@ -181,6 +229,8 @@ uninstall_host() {
 }
 
 run_uninstall() {
+  # same backup location policy as install: user scope → $HOME, project → cwd
+  if [ "$SCOPE" = "user" ]; then BACKUP_DIR="$HOME/.tsk-backup"; else BACKUP_DIR="$PWD/.tsk-backup"; fi
   resolve_targets
   for row in "${TARGETS[@]}"; do
     IFS='|' read -r id dest _ <<< "$row"
@@ -202,6 +252,8 @@ backup_existing() {
   ts="$(date +%Y%m%d-%H%M%S)-$$"
   [ -d "$BACKUP_DIR" ] || mkdir -p "$BACKUP_DIR"
   bdir="$BACKUP_DIR/${existing##*/}-$ts"
+  # collision-safe: never mv INTO an existing backup dir (mv would nest)
+  while [ -e "$bdir" ]; do bdir="$bdir-x"; done
   mv "$existing" "$bdir"
   echo "     ↳ previous version backed up → $bdir" >&2
 }
@@ -252,7 +304,7 @@ render_template() { # $1=src $2=outfile $3=kit_dir_value
 # === INSTALL ===============================================================
 run_install() {
   resolve_targets
-  [ ${#TARGETS[@]} -eq 0 ] && { echo "❌ No hosts detected or matched. Use --agent to pick one explicitly." >&2; exit 1; }
+  [ ${#TARGETS[@]} -eq 0 ] && { echo "❌ No hosts detected or matched. Use --agent to pick ones explicitly from:$KNOWN_HOST_IDS" >&2; exit 1; }
 
   if [ "$SCOPE" = "user" ]; then BACKUP_DIR="$HOME/.tsk-backup"; else BACKUP_DIR="$PWD/.tsk-backup"; fi
 

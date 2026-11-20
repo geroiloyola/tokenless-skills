@@ -160,6 +160,25 @@ def check_skill(skill_dir):
         if link and not (skill_dir / link).exists():
             errors.append(f"relative link target '{link}' does not exist")
 
+    # nested reference files are scanned too (release audit G12). Fenced code
+    # blocks are skipped: they quote upstream tooling, not this kit's files.
+    for ref_file in sorted(skill_dir.glob("references/*.md")):
+        try:
+            rtext = ref_file.read_text(encoding="utf-8")
+        except OSError:
+            warnings.append(f"could not read {ref_file.name}")
+            continue
+        scan = re.sub(r"```.*?```", "", rtext.replace("\r\n", "\n"), flags=re.S)
+        for m in re.finditer(r"(references|scripts)/[\w.\-]+\.(?:md|mjs|js|py|json|txt|toml|sh)", scan):
+            ref = m.group(0)
+            if not (skill_dir / ref).is_file():
+                errors.append(f"{ref_file.name} references '{ref}' but that file is missing from the skill folder")
+        for m in re.finditer(r"\]\((?!https?://|#)([^)]+)\)", scan):
+            link = m.group(1).split("#")[0].strip()
+            # markdown links resolve relative to the file that contains them
+            if link and not (ref_file.parent / link).exists():
+                errors.append(f"{ref_file.name}: relative link target '{link}' does not exist")
+
     info.update({"name": name, "nonempty_lines": n, "body_chars": body_chars,
                  "est_tokens": est_tokens, "desc_chars": len(desc),
                  "version": (meta.get("metadata") or {}).get("version")})

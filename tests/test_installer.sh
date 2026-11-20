@@ -141,6 +141,62 @@ mkdir -p "$H12/.cursor"
 (cd "$T12/kit" && bash install.sh --agent cursor >/dev/null 2>&1)
 check "cursor host install works" $([ -d "$H12/.cursor/skills/write-plan" ] && echo 0 || echo 1)
 
+# ---------- 13: uninstall preserves customized skills (release audit G7) ----------
+T13="$BASE/t13"; H13="$T13/h"
+setup_kit "$T13" "$H13"
+mkdir -p "$H13/.claude/skills/third-party-x"
+(cd "$T13/kit" && bash install.sh --agent claude >/dev/null 2>&1)
+echo "# user customization v1" >> "$H13/.claude/skills/verify-done/SKILL.md"
+echo "user-data" > "$H13/.claude/skills/verify-done/custom.md"
+(cd "$T13/kit" && bash install.sh --uninstall --yes --agent claude >/dev/null 2>&1)
+check "customized skill preserved in backup" $(find "$H13/.tsk-backup" -path "*verify-done*/custom.md" | grep -q . && echo 0 || echo 1)
+check "customization content intact in backup" $(find "$H13/.tsk-backup" -path "*verify-done*/SKILL.md" -exec grep -l "user customization" {} + | grep -q . && echo 0 || echo 1)
+check "unmodified kit skill still removed" $([ ! -d "$H13/.claude/skills/implement-tdd" ] && echo 0 || echo 1)
+check "customized verify-done removed from dest after backup" $([ ! -d "$H13/.claude/skills/verify-done" ] && echo 0 || echo 1)
+check "third-party skill still untouched" $([ -d "$H13/.claude/skills/third-party-x" ] && echo 0 || echo 1)
+
+# ---------- 14: uninstall never follows or destroys a symlinked skill dir ----------
+T14="$BASE/t14"; H14="$T14/h"
+setup_kit "$T14" "$H14"
+mkdir -p "$T14/outside"; echo "precious" > "$T14/outside/data.txt"
+mkdir -p "$H14/.claude/skills"
+# Native symlinks need Windows Developer Mode; plain MSYS ln -s falls back to a
+# directory copy. Detect which one we actually got and assert accordingly.
+ln -s "$T14/outside" "$H14/.claude/skills/design-review" 2>/dev/null || true
+IS_SYMLINK=1
+[ -L "$H14/.claude/skills/design-review" ] || IS_SYMLINK=0
+(cd "$T14/kit" && bash install.sh --uninstall --yes --agent claude >/dev/null 2>&1)
+check "linked dir's data survives uninstall" $([ -f "$T14/outside/data.txt" ] && echo 0 || echo 1)
+check "kit never wrote SKILL.md into the linked tree" $([ ! -f "$T14/outside/SKILL.md" ] && echo 0 || echo 1)
+if [ "$IS_SYMLINK" -eq 1 ]; then
+  check "symlink rather than content was removed" $([ -L "$H14/.claude/skills/design-review" ] && echo 0 || echo 1)
+else
+  # MSYS copied the dir; treat as a foreign-content dir and verify preservation
+  check "foreign-content skill dir left in place" $([ -f "$H14/.claude/skills/design-review/data.txt" ] && echo 0 || echo 1)
+fi
+
+# ---------- 15: backup collision → -x suffix, never nested (release audit G11) ----------
+T15="$BASE/t15"; H15="$T15/h"
+setup_kit "$T15" "$H15"
+mkdir -p "$T15/shims"
+printf '#!/bin/sh\necho 20200101000000\n' > "$T15/shims/date"; chmod +x "$T15/shims/date"
+(cd "$T15/kit" && bash install.sh --agent claude >/dev/null 2>&1)
+printf A > "$H15/.claude/skills/verify-done/SKILL.md"          # customized v1
+(cd "$T15/kit" && PATH="$T15/shims:$PATH" bash install.sh --agent claude >/dev/null 2>&1)
+printf B > "$H15/.claude/skills/verify-done/SKILL.md"          # customized v2 (same fake second)
+(cd "$T15/kit" && PATH="$T15/shims:$PATH" bash install.sh --agent claude >/dev/null 2>&1)
+check "collision did not nest backups (v1 intact)" $(grep -q A "$H15/.tsk-backup/verify-done-20200101000000-"*"/SKILL.md" 2>/dev/null && echo 0 || echo 1)
+check "collision did not nest backups (v2 kept)" $(grep -q B "$H15/.claude/skills/verify-done/SKILL.md" && echo 0 || echo 1)
+
+# ---------- 16: unknown --agent id is rejected, not silently dropped ----------
+T16="$BASE/t16"; H16="$T16/h"
+setup_kit "$T16" "$H16"
+out=$("$T16/kit/install.sh" --agent cluade 2>&1); rc=$?
+check "unknown host id exits 2" $([ "$rc" -eq 2 ] && echo 0 || echo 1)
+check "unknown host id names itself in the error" $(echo "$out" | grep -q "cluade" && echo 0 || echo 1)
+out2=$("$T16/kit/install.sh" --agent cluade,claude 2>&1)
+check "mixed valid+unknown id: valid one still installs" $([ -d "$H16/.claude/skills/write-plan" ] && echo 0 || echo 1)
+
 # ---------- summary ----------
 echo
 echo "installer tests: $PASS passed, $FAIL failed$([ ${#FAILED_NAMES[@]} -gt 0 ] && printf ' — %s\n' "${FAILED_NAMES[@]}")"

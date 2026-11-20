@@ -1,8 +1,8 @@
 # tokenless-skills
 
-**14 ultra-light agent skills (~350–600 tokens each, ~450 measured average) with an always-loaded cost of only ~0.7k tokens.** The design goal: maximum practical agent workflow capability per token, without sacrificing verification discipline.
+**14 ultra-light agent skills (~350–600 tokens each, ~470 measured average) with an always-loaded cost of only ~718 tokens.** The design goal: maximum practical agent workflow capability per token, without sacrificing verification discipline.
 
-> **Claims, honestly** — "~500 tokens each" is a measured estimate (chars/4; see `scripts/check_skills.py --json`). The suite's *relative* cost is much lower than always-loaded frameworks because only per-skill descriptions stay resident and bodies load on demand. Claims about matching the capability of larger frameworks are **hypotheses, not benchmarks** — we document a method in `RELEASE.md` §benchmarks for measuring them; none has been run against model APIs with published conditions. Treat those comparisons as design intent.
+> **Claims, honestly** — all token figures below are **measured with the chars/4 estimator** in `scripts/check_skills.py --json` (deterministic, re-runnable, but an estimate — not a tokenizer): bodies 360–581 tokens per skill (mean ~469 across the 14 shipped ones); always-loaded frontmatter descriptions ~718 total; ~7,285 worst case IF a session fires every skill body (unrealistic; a session typically loads 2–4). The suite's *relative* cost is much lower than always-loaded frameworks because only per-skill descriptions stay resident and bodies load on demand. Claims about matching the capability of larger frameworks are **hypotheses, not benchmarks** — we document a method for measuring them in `RELEASE.md` §"Benchmark method"; none has been run against model APIs with published conditions. Treat those comparisons as design intent.
 
 ## Install
 
@@ -22,7 +22,7 @@ cd tokenless-skills && ./install.sh
 
 > `curl .../install.sh | bash` is intentionally **not** supported — the installer reads sibling files. If you pipe it by mistake it exits with exact clone instructions and touches nothing.
 
-**Safety by construction** ([details in `docs/HOSTS.md`](docs/HOSTS.md)): overwriting an existing kit skill moves the old one to `~/.tsk-backup/` first; third-party skills are never touched; `--dry-run` previews every change; `--uninstall` removes only kit-owned skills and is dry-run by default.
+**Safety by construction** ([details in `docs/HOSTS.md`](docs/HOSTS.md)): overwriting an existing kit skill moves the old one to `~/.tsk-backup/` first; third-party skills are never touched; `--dry-run` previews every change; `--uninstall` removes only unmodified kit-owned skills and moves customized copies to the backup instead of deleting.
 
 ## Skills
 
@@ -66,10 +66,16 @@ python3 scripts/check_skills.py --strict
 ```bash
 git -C tokenless-skills pull && cd tokenless-skills && ./install.sh   # backs up what it replaces
 ./install.sh --uninstall            # dry-run: lists what would go
-./install.sh --uninstall --yes      # applies (only kit-owned skills, verified by frontmatter)
+./install.sh --uninstall --yes      # applies kit-owned skills
 ```
 
-`~/.agents/memory/` (lessons, instincts) survives uninstall — it is yours.
+Uninstall is conservative: frontmatter `name:` must match a kit skill, and the
+installed copy must be byte-identical to the kit's before it is removed.
+**Customized or older-version copies are moved to `~/.tsk-backup/` (or
+`./.tsk-backup/` in project scope), never deleted.** Third-party skills and
+symlinks are left untouched. `~/.agents/memory/` (lessons, instincts) — it is
+yours and survives uninstall. Backups are never auto-deleted; prune
+`.tsk-backup` manually when convenient.
 
 ## Security limitations (read this)
 

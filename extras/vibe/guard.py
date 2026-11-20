@@ -29,9 +29,24 @@ import sys
 # normalized: quotes are treated as neutral characters so `rm -rf "$HOME"`
 # is normalized to the same string as `rm -rf $HOME`) -----------------------
 DANGEROUS = [
-    # rm targeting catastrophic destinations after recursive/force flags
-    (r"\brm\s+(?:-\w+\s+)+(/|/\*|~|\$home|\*|\.\.?|\.git)(/|\s|$)",
-     "recursive delete of root, home, .git, or wildcard target"),
+    # rm catastrophic targets. Depth policy: bare root, home tilde, and
+    # $HOME forms deny; deeper relative/home subpath deletes stay allowed so
+    # normal dev work (rm -rf ~/.cache/pip, rm -rf ./build) is not blocked.
+    (r"\brm\s+(?:-\w+\s+)+(/\*|/)(/|\s|$)", "recursive delete of the root or root glob"),
+    (r"\brm\s+(?:-\w+\s+)+~\w*/?(\s|$)", "recursive delete of a home directory"),
+    (r"\brm\s+(?:-\w+\s+)+\$@?\{?home\}?/?(\s|$)", "recursive delete of your home directory"),
+    (r"\brm\s+(?:-\w+\s+)+\*(/|\s|$)", "wildcard delete"),
+    (r"\brm\s+(?:-\w+\s+)+\.\.?/?(\s|$)", "recursive delete of the current or parent directory"),
+    (r"\brm\s+(?:-\w+\s+)+\.git/?(\s|$)", "recursive delete of .git"),
+    # depth-1 system dirs (rm -rf /home, /etc, ...) and drive-mount roots (/c/,
+    # Windows C:/ or C:/Users) — depth-2+ paths stay allowed for normal work.
+    (r"\brm\s+(?:-\w+\s+)+/(?:home|etc|usr|var|opt|boot|bin|sbin|lib|proc|sys|dev)\b(/?)(\s|$)",
+     "recursive delete of a system directory"),
+    (r"\brm\s+(?:-\w+\s+)+/[cd]\b(/?)(\s|$)", "recursive delete of a drive mount root"),
+    (r"\brm\s+(?:-\w+\s+)+[a-z]:/?(\s|$)", "recursive delete of a whole drive"),
+    (r"\brm\s+(?:-\w+\s+)+[a-z]:/(?:users|windows|program files)\b", "recursive delete of a Windows system directory"),
+    # --no-preserve-root: long flag can't be matched by the -w flag group
+    (r"\brm\b[^;&|\n]*--no-preserve-root", "rm with --no-preserve-root"),
     (r"\brm\s+(?:-\w+\s+)+(\$|\s|)\(", "rm targeting a command substitution"),
     (r"\brm\s+(?:-\w+\s+)+`\s*rm\s", "rm targeting a backtick substitution"),
     # wildcard/root deletes regardless of spelling (e.g. cd / && rm -rf *)
@@ -39,22 +54,28 @@ DANGEROUS = [
     (r"\brm\s+-\w+\s+\*\s*$", "wildcard delete of the current directory"),
     (r"\brm\s+-\w+\s+\.\s*$", "delete the current directory"),
     (r"\bfind\s+(/\s*|~\s*)(?:.*)\bdelete\b", "find -delete (delete via find)"),
+    # relative find deletion: deny -delete on . / bare find UNLESS a narrowing
+    # -name/-iname/-regex predicate is present (keeps `find . -name '*.pyc' -delete` legal)
+    (r"\bfind\s+\.?\s*(?![^;&|\n]*-(?:name|iname|regex)\b)[^;&|\n]*\s-delete\b",
+     "find -delete on the current directory tree (no -name filter)"),
     (r"\bmkfs\b", "make filesystem (disk wipe)"),
     (r"\bdd\b[^;&|\n]*\bof=/dev/(?!null)", "write directly to a block device"),
     (r"\bshred\b[^;&|\n]*/dev/(?!null)", "shred a block device"),
     (r":\(\)\s*\{\s*:\|\s*:\s*&\s*\}\s*;", "fork bomb"),
-    (r"\bchmod\s+777\b(?:\s+-\w+)+|\bchmod(?:\s+-\w+)+\s+777\b", "chmod 777 (any flag order)"),
+    # chmod 777 with ANY flag arrangement including none (chmod -R 777 /, chmod 777 /, chmod 777 -R /)
+    (r"\bchmod\s+(?:-\w+\s+)*777\b", "chmod 777"),
     (r">\s*/dev/sd[a-z]", "raw disk write redirection"),
     # force pushes: force-with-lease=false first (disables the lease), then
-    # classic flags, then the +refspec form
+    # classic flags (incl. -ff shorthand), then the +refspec form
     (r"\bgit\s+push\b[^;&|\n]*--force-with-lease=(false|no)\b", "force push with lease disabled"),
-    (r"\bgit\s+push\b(?![^;&|\n]*--force-with-lease\b)[^;&|\n]*(--force\b|\s-f\b)", "git push --force without lease"),
+    (r"\bgit\s+push\b(?![^;&|\n]*--force-with-lease\b)[^;&|\n]*(--force\b|\s-f{1,2}\b)", "git push --force without lease"),
     (r"\bgit\s+push\b[^;&|\n]*\s\+[\w\.]+", "force push via +refspec"),
     (r"\bgit\s+reset\s+--hard\b[^;&|\n]*\borigin\b", "reset --hard against origin"),
     (r"\bgit\s+clean\s+-[a-z]*[xdf]", "git clean (destructive)"),
     (r"\bgit\s+checkout\s+--\s+\.", "git checkout -- . (discard all local changes)"),
     # remote code execution shapes
     (r"\b(curl|wget)\b[^\n]*\|\s*(ba|z|da|k)?sh\b", "pipe remote content to a shell"),
+    (r"\b(curl|wget)\b[^\n]*\|\s*(node|deno|bun|perl|ruby)\b", "pipe remote content to an interpreter"),
     (r"\b(ba|z|da|k)?sh\s+<\(\s*(curl|wget)\b", "execute downloaded script via process substitution"),
     (r"\beval\s+(\"|'|)\$\((curl|wget)\b", "eval of downloaded content"),
     (r"\b(curl|wget)\b[^\n]*\|\s*python(3)?\b", "pipe remote content to python"),
@@ -77,6 +98,10 @@ PROTECTED_PATHS = [
     (r"(^|/)\.ssh/", "inside ~/.ssh"),
     (r"(^|/)(id_rsa|id_dsa|id_ecdsa|id_ed25519)(\).\w+)?$", "an SSH private key"),
     (r"(^|/)(\.netrc|\.npmrc|\.pypirc)$", "a credentials file"),
+    (r"(^|/)\.aws/", "AWS credentials"),
+    (r"(^|/)\.kube/config$", "a Kubernetes cluster config"),
+    (r"(^|/)\.docker/config\.json$", "Docker registry credentials"),
+    (r"(^|/)\.gnupg/", "a GPG keyring"),
     (r"(package-lock\.json|pnpm-lock\.yaml|yarn\.lock|poetry\.lock|cargo\.lock|uv\.lock|go\.sum)$",
      "a lockfile (regenerate with the package manager, do not hand-edit)"),
 ]

@@ -115,6 +115,53 @@ class ApiTests(unittest.TestCase):
         errs, _, _ = self.errors(md, extra={"references/extra.md": "# digest\n"})
         self.assertEqual(errs, [])
 
+    # --- nested references (release audit G12): references/*.md are scanned too ---
+
+    def test_nested_reference_missing_is_error(self):
+        md = VALID.replace("## Output", "Read references/extra.md first.\n## Output")
+        # extra.md itself points at a nonexistent script
+        errs, _, _ = self.errors(md, extra={
+            "references/extra.md": "# digest\nRun scripts/tool.py after step 1.\n"})
+        self.assertTrue(any("tool.py" in e and "extra.md" in e for e in errs),
+                        f"nested broken ref not caught: {errs}")
+
+    def test_nested_reference_present_ok(self):
+        md = VALID.replace("## Output", "Read references/extra.md first.\n## Output")
+        errs, _, _ = self.errors(md, extra={
+            "references/extra.md": "Run scripts/tool.py after step 1.\n",
+            "scripts/tool.py": "print('ok')\n"})
+        self.assertEqual(errs, [])
+
+    def test_nested_duplicate_references_not_an_error(self):
+        # referencing the same file twice in one reference file is fine
+        md = VALID.replace("## Output", "Read references/extra.md first.\n## Output")
+        errs, _, _ = self.errors(md, extra={
+            "references/extra.md": "Run scripts/tool.py, then scripts/tool.py again.\n",
+            "scripts/tool.py": "print('ok')\n"})
+        self.assertEqual(errs, [])
+
+    def test_nested_fenced_code_is_not_scanned(self):
+        # release audit G12 fix: fenced blocks quote upstream tooling, not kit files
+        md = VALID.replace("## Output", "Read references/extra.md first.\n## Output")
+        errs, _, _ = self.errors(md, extra={
+            "references/extra.md":
+                "```bash\npython scripts/upstream-tool.py --flag\n```\nDone.\n"})
+        self.assertEqual(errs, [])
+
+    def test_nested_broken_markdown_link_is_error(self):
+        md = VALID.replace("## Output", "Read references/extra.md first.\n## Output")
+        errs, _, _ = self.errors(md, extra={
+            "references/extra.md": "See [notes](./no-such-file.md) for detail.\n"})
+        self.assertTrue(any("no-such-file.md" in e for e in errs),
+                        f"nested broken link not caught: {errs}")
+
+    def test_nested_relative_link_valid_ok(self):
+        md = VALID.replace("## Output", "Read references/extra.md first.\n## Output")
+        errs, _, _ = self.errors(md, extra={
+            "references/extra.md": "See [other](./second.md) for detail.\n",
+            "references/second.md": "# second digest\n"})
+        self.assertEqual(errs, [])
+
     def test_disallowed_frontmatter_keys_warn(self):
         md = VALID.replace("license: MIT", "license: MIT\nallowed-tools: bash,read")
         _, warns, _ = self.errors(md)

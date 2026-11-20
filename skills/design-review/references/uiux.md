@@ -81,6 +81,10 @@ Always pair with a real contrast verification (§2.1).
 Rule: max 2 families + 1 mono; modular scale (1.125 or 1.25), no loose sizes.
 
 ## 8) Searchable (upstream repo)
+Optional upstream tooling — `ui-ux-pro-max-cli` and its `search.py` are NOT
+part of this kit. If the install below fails or the tool is absent, skip this
+section, mark the searchable catalog as unavailable, and audit with the
+digest above plus `contrast.mjs`.
 If you need the full catalog (80 styles, 192 reasoned palettes, 74 pairings, 120
 UX rules, 105 icons, 17 GSAP presets, 25 chart types, 22 stacks):
 ```bash

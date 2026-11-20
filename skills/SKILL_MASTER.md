@@ -178,10 +178,10 @@ one output line; no example needed; 38 lines.
 
 | Item | Value |
 |---|---|
-| Always loaded | ~100 tokens per skill (name + description) |
-| Body target | 350–650 tokens; hard cap 1000 |
+| Always loaded | ~50 tokens per skill (name + description); ~718 for all 14 (measured, chars/4) |
+| Body target | 350–650 tokens; hard cap 1000 (measured range in this kit: 360–581) |
 | Digest | ≤ 500 lines, no frontmatter, read only on demand |
-| Kit total | 14 skills ≈ 0.7k always-loaded (descriptions), ≈ 7.3k worst case if every skill fires (trust `check_skills.py` over this row) |
+| Kit total | 14 skills: ~718 always-loaded, ~7,285 worst case if every skill body fires — measured via `check_skills.py --json`; trust it over this row |
 
 ## 10. Where to install
 
