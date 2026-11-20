@@ -1,6 +1,6 @@
 ---
 name: eval-harness
-description: "Measures whether changes to skills, AGENTS.md, hooks or agent configs improved the agent, by rerunning 5 fixed repo tasks and comparing iterations and outcomes. Use after editing any skill, hook or config, or when output quality seems to regress."
+description: "Measures whether changes to skills, AGENTS.md, hooks or configs improved the agent by rerunning fixed repo eval tasks. Use after editing any skill or config, or when output regresses. Not for one-off changes with no eval baseline."
 license: MIT
 metadata:
   version: "0.1.0"
@@ -14,7 +14,7 @@ A change without a rerun is an opinion. Five fixed tasks prove it.
 1. Pick 5 real tasks: 1 small feature, 1 bug, 1 refactor, 1 UI change, 1 migration or contract change.
 2. Save each under `prompts/eval/` as `0N-<slug>.md` with the 5-block anatomy
    (objective, context, constraints, done-when, output), and its pass criterion.
-   Full templates: `prompts/task-templates.md` in the kit repo (optional).
+   Full templates: `evals/tasks/README.md` in the tokenless-skills repo.
 3. Record the baseline row for each task: iterations, tokens, artifacts produced.
 
 ## Run

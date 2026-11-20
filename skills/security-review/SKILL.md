@@ -1,6 +1,6 @@
 ---
 name: security-review
-description: "Checks a diff for secrets, injection, authz gaps, unsafe deserialization and risky dependencies. Use before merges touching auth, payments, user input, file uploads, or queries, or when the user asks for a security pass."
+description: "Checks a diff for secrets, injection, authz gaps, unsafe deserialization and risky dependencies. Use before merges touching auth, payments, uploads or queries, or on request. Not for diffs with no trust boundary; not a pen-test."
 license: MIT
 metadata:
   version: "0.4.0"

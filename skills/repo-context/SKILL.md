@@ -1,6 +1,6 @@
 ---
 name: repo-context
-description: "Creates or updates AGENTS.md with verified commands, repo map and canonical patterns. Use in an unfamiliar repo, before a first task there, or when the agent keeps breaking project conventions."
+description: "Creates or updates AGENTS.md with verified commands, a repo map and canonical patterns. Use in an unfamiliar repo or before a first task there. Not for repos with a current AGENTS.md; update it only if conventions keep breaking."
 license: MIT
 metadata:
   version: "0.4.0"

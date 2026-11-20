@@ -1,6 +1,6 @@
 ---
 name: design-review
-description: "Chooses one aesthetic direction and a small token set before writing UI code, then audits the result. Use when building or restyling any page or component, when the UI looks generic, or before shipping frontend work."
+description: "Chooses one aesthetic direction and a small token set before writing UI code, then audits the result. Use when building or restyling any page or component, or before shipping frontend work. Not for backend or API-only changes."
 license: MIT
 metadata:
   version: "0.4.0"

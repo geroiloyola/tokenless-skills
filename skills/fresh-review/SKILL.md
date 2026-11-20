@@ -1,6 +1,6 @@
 ---
 name: fresh-review
-description: "Blocking review of the diff by a reviewer with no session bias, required before finishing any change. Use after implement-tdd, before verify-done, or when the user asks for a second opinion on a diff."
+description: "Blocking diff review by a reviewer with no session bias, run once after the plan's last implement-tdd task and before verify-done, or when the user asks for a second opinion. Not for trivial single-file doc changes."
 license: MIT
 metadata:
   version: "0.4.0"

@@ -1,6 +1,6 @@
 ---
 name: spec-brainstorm
-description: "Turns a vague feature request into a short spec with acceptance criteria and edge cases, asking questions first. Use when a request is ambiguous, when several designs are possible, or before write-plan on any new feature."
+description: "Turns a vague request into a short spec with acceptance criteria, asking questions first. Use when a request is ambiguous or before write-plan on a new feature. Not for approved specs or trivial one-line fixes."
 license: MIT
 metadata:
   version: "0.4.0"

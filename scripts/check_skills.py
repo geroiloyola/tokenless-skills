@@ -114,6 +114,8 @@ def check_skill(skill_dir):
         errors.append("frontmatter missing required key 'description'")
     elif len(desc) > MAX_DESC_CHARS:
         errors.append(f"description is {len(desc)} chars (kit limit {MAX_DESC_CHARS})")
+    if desc and "not for" not in desc.lower():
+        warnings.append("description has no anti-trigger: add 'Not for <case>.' at the end")
 
     # license / version
     if "license" not in meta:

@@ -1,6 +1,6 @@
 ---
 name: write-plan
-description: "Splits an approved spec into small verifiable tasks with exact files, order and human checkpoints. Use after spec-brainstorm, or when the user asks for a plan before implementing a multi-file feature."
+description: "Splits an approved spec into small verifiable tasks with exact files, order and human checkpoints. Use after spec-brainstorm or before implementing a multi-file feature. Not for single-commit tasks or missing approved specs."
 license: MIT
 metadata:
   version: "0.4.0"

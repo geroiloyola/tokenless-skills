@@ -1,6 +1,6 @@
 ---
 name: verify-done
-description: "Runs build, typecheck, lint and tests, then reviews the full diff against the spec before declaring work finished. Use before a final commit, a push, or opening a pull request."
+description: "Runs build, typecheck, lint and tests, then reviews the full diff against the spec before declaring work finished. Run after fresh-review, before a final commit, push or pull request. Not for sanity checks after every edit."
 license: MIT
 metadata:
   version: "0.4.0"
@@ -10,7 +10,7 @@ metadata:
 
 "Done" means verified, not believed.
 
-## Gates (run in order, keep the output)
+## Gates (this list is the kit's single source of truth; implement-tdd and fresh-review defer to it. Run in order, keep the output)
 0. **Performance (optional)**: only if the repo ships a real benchmark (script in package.json, `cargo bench`, pytest-benchmark) or records one in AGENTS.md: run it and compare to the last recorded baseline. Regression ≥5% = MAJOR. No baseline: skip and name it as skipped — never invent numbers.
 1. typecheck (cheapest failures first)
 2. lint

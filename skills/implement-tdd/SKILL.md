@@ -1,6 +1,6 @@
 ---
 name: implement-tdd
-description: "Writes a failing test first, then minimal code, then refactors. Use when implementing a feature, fixing a bug, or when the user says implement, build it, or make it work."
+description: "Writes a failing test first, then minimal code, then refactors. Use when implementing a feature or fixing a bug, or when the user says implement, build it, or make it work. Not for unreproducible bugs or pure documentation changes."
 license: MIT
 metadata:
   version: "0.4.0"
@@ -17,7 +17,7 @@ Per unit of work: RED → GREEN → REFACTOR → COMMIT.
 4. One change, one commit. Never mix a refactor with a feature.
 5. Never delete, skip, or weaken a test to get green. If a test looks wrong, say why and ask.
 6. Do not touch files outside the plan. Report every deviation at the end.
-7. Before each commit run build + lint + typecheck when the repo has them. Failures caused by your change: fix. Pre-existing failures: report, do not fix as a side effect.
+7. Gate order (typecheck, lint, tests, build) lives in verify-done; do not redefine it. Per commit: run affected checks with AGENTS.md commands. Failures caused by your change: fix. Pre-existing failures: report, do not fix as a side effect.
 8. An "attempt" = one code edit plus one test run. After 2 failed attempts on the same error, stop and run the systematic-debugging skill. Do not keep guessing.
 
 ## Test level by layer
@@ -42,4 +42,4 @@ Per unit of work: RED → GREEN → REFACTOR → COMMIT.
 - Done: task ids + commit hashes
 - Tests: new / modified, full suite result
 - Deviations from the plan and the reason
-- Next: next task, or "run the verify-done skill"
+- Next: next task; after the last task run fresh-review, then verify-done

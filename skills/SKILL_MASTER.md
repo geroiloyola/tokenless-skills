@@ -45,9 +45,10 @@ metadata:
 ---
 ```
 
-- `description` ≤ **250 chars** (the spec allows 1024; we cap for precision). It is the
-  **index**: the only thing loaded at startup (~100 tokens per skill) and the only thing
+- `description` ≤ **250 chars** and, measured with tiktoken `o200k_base`, **≤ 60 tokens**.
+  It is the **index**: the only thing loaded at startup and the only thing
   the model uses to decide whether to activate. Write the phrases a human would actually type.
+  It MUST end with one anti-trigger: `Not for <case>.` (what must NOT activate it).
 - `name` = folder name, lowercase, hyphens, no underscores.
 - `version` goes under `metadata`; a top-level `version:` is not in the Agent Skills spec.
 - Do not add `compatibility`, `allowed-tools`, or custom keys.
@@ -91,7 +92,7 @@ Optional sections, chosen only when they earn their lines: `## Questions` (max 4
 | Scope control | `pre-existing failures: report, do not fix as a side effect` |
 | Evidence over assertion | `no UI claim without a screenshot or DOM assertion from this session` |
 | Human checkpoints | `migrations, public API, dependency changes → ask first` |
-| Memory hygiene | `lessons.md ≤ 80 lines, instincts.md ≤ 40, prune before appending` |
+| Memory hygiene | `lessons.md` single file, ≤ 80 lines total (lessons + instincts), instincts ≤ 40; prune before appending |
 | Fresh context | `the author does not grade their own work; reviewer is read-only` |
 | Cost discipline | `always-loaded ≈ 100 tokens; green run = empty stdout` |
 

@@ -1,6 +1,6 @@
 ---
 name: remember-correction
-description: "Persists a user correction as a one-line rule so the same mistake is not repeated. Use when the user says no, don't do that, I already told you, or otherwise corrects your approach."
+description: "Persists a user correction as a one-line rule so the same mistake is not repeated. Use when the user says no, don't do that, or I already told you. Not for one-off task preferences or feedback without a concrete action."
 license: MIT
 metadata:
   version: "0.4.0"
@@ -14,7 +14,8 @@ A correction is a bug report against your behavior. Fix it permanently.
 1. Stop the current approach. Restate the correction in one line and confirm it is understood.
 2. Grep `~/.agents/memory/lessons.md` and the repo AGENTS.md. If a rule already covers it, tighten that line instead of adding a duplicate.
 3. Append one line to `~/.agents/memory/lessons.md` (create the file if missing):
-   `- YYYY-MM-DD | priority:HIGH|MEDIUM|LOW | scope: global | rule: <imperative, ≤15 words> | why: <what went wrong>`
+   `- YYYY-MM-DD | type:lesson | scope:global|repo:<name> | priority:HIGH|MEDIUM|LOW | rule: <imperative, ≤15 words> | why: <what went wrong>`
+   One file, one envelope: instincts share `lessons.md` with `type:instinct | conf:` instead of `priority:` (see learn-instinct).
    Use `scope: repo:<name>` for rules that only apply to this project. `expires: <date>`
    goes last, only for rules tied to a temporary workaround or a dependency version.
 4. Re-read the line you wrote and check it is actionable by a different agent with no context.

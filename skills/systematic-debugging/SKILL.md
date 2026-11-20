@@ -1,6 +1,6 @@
 ---
 name: systematic-debugging
-description: "Finds root causes with falsifiable hypotheses instead of random edits. Use for flaky bugs, unexplained test failures, production stack traces, or after two failed attempts at the same error."
+description: "Finds root causes with falsifiable hypotheses instead of random edits. Use for flaky bugs, unexplained failures, or after two failed fix attempts. Not for the expected red test of a TDD cycle or for requested spikes."
 license: MIT
 metadata:
   version: "0.4.0"

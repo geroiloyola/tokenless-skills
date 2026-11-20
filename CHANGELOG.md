@@ -2,6 +2,23 @@
 
 All notable changes to tokenless-skills. Format inspired by Keep a Changelog; not every patch is listed.
 
+## [Unreleased] — Tokenless Standard, Fase 0-1
+
+### Added
+- `scripts/measure_tokens.py`: reproducible token measurement with tiktoken (`o200k_base`); degrades to the chars/4 estimator labeled `UNMEASURED` with exit 2. tiktoken is a dev-only dependency (hosts never run this script). Raw results versioned at `evals/results/tokens-baseline.json`.
+- `docs/BASELINE.md` (Fase 0): per-skill measured tokens, README figure reconciliation (measured vs hypothesis), skill overlaps, ambiguities, steps without stop criteria, top-10 quality risks.
+- `evals/tasks/README.md`: task anatomy (5 blocks, executable pass criteria) now referenced by `eval-harness`, replacing the external `prompts/task-templates.md` pointer.
+- `check_skills.py` warns when a description lacks an anti-trigger (`Not for ....`); 2 new checker tests.
+
+### Changed (Fase 1 — closes `docs/BASELINE.md` findings, measured before/after)
+- All 14 descriptions rewritten: ≤60 tokens (tiktoken, measured range 41-57) and exactly one anti-trigger each. Always-loaded cost 600 → 653 tokens (+53, the price of anti-trigger precision; 0/14 → 14/14 with anti-trigger).
+- Gating made single-source-of-truth: `verify-done` owns the gate list; `implement-tdd` rule 7 now defers to it instead of redefining build/lint/typecheck order. Bodies 6,496 → 6,598 total (+102; verification: `scripts/measure_tokens.py`).
+- `fresh-review` has one explicit trigger point in the protocol: `implement-tdd` closing report now ends "after the last task run fresh-review, then verify-done" (previously only verify-done was named, so fresh-review could silently never fire).
+- Memory unified: a single file `~/.agents/memory/lessons.md` with one line envelope (`type:lesson | priority` vs `type:instinct | conf`); instinct promotion re-tags the same line instead of pointing at a second file. Conservative choice: both skills kept (different triggers), duplication removed. `instincts.md` is no longer referenced.
+- `eval-harness` no longer points to an external `prompts/task-templates.md`; templates live at `evals/tasks/README.md` in this repo.
+- README token claims now cite measured tiktoken figures (369-572 body, 464 mean, 600 always-loaded, ~7,096 all-bodies worst case). Old figures (718; 7,285) removed; capability-comparison claims stay labeled hypotheses pending the preregistered A/B/D benchmark.
+- `skills/SKILL_MASTER.md` doctrine updated to match: description ≤60 tokens + mandatory anti-trigger; memory hygiene rule now describes the single `lessons.md` file.
+
 ## [1.0.0] — 2026
 
 ### Added

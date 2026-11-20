@@ -1,6 +1,6 @@
 ---
 name: subagent-execute
-description: "Executes plan tasks one at a time in isolated worktrees so the main session keeps a clean context. Use for multi-task plans, long autonomous runs, or when the user asks to run the whole plan, parallelize tasks, or work in a worktree."
+description: "Executes plan tasks one at a time in isolated worktrees so the main session keeps a clean context. Use for multi-task plans or long autonomous runs. Not for single tasks, repos without git, or tasks sharing files in parallel."
 license: MIT
 metadata:
   version: "0.4.0"

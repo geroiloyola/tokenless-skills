@@ -20,7 +20,7 @@ SPEC.loader.exec_module(cs)
 
 VALID = """---
 name: sample-skill
-description: "Does one thing well. Use when a sample situation comes up, or when testing skills, or before shipping."
+description: "Does one thing well. Use when a sample situation comes up, or when testing skills, or before shipping. Not for unrelated work."
 license: MIT
 metadata:
   version: "0.4.0"
@@ -69,6 +69,16 @@ class ApiTests(unittest.TestCase):
     def test_name_mismatch(self):
         md = VALID.replace("name: sample-skill", "name: other-name")
         self.assertIn("does not match directory", self.errors(md, "sample-skill")[0][0])
+
+    def test_description_without_antitrigger_warns(self):
+        md = VALID.replace(" Not for unrelated work.", "")
+        errs, warns, _ = self.errors(md)
+        self.assertEqual(errs, [])
+        self.assertTrue(any("anti-trigger" in w for w in warns))
+
+    def test_description_with_antitrigger_no_warning(self):
+        errs, warns, _ = self.errors(VALID)
+        self.assertFalse(any("anti-trigger" in w for w in warns))
 
     def test_missing_frontmatter(self):
         errs, _, _ = self.errors("# just a body\nno frontmatter here\n")

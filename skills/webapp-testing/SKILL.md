@@ -1,6 +1,6 @@
 ---
 name: webapp-testing
-description: "Drives a real browser to verify UI rendering, console errors, network failures and basic accessibility. Use after building or changing UI, before claiming a page works, or when the user asks to test the frontend."
+description: "Drives a real browser to verify UI rendering, console errors, network failures and basic accessibility. Use after building or changing UI, before claiming a page works. Not for backend-only changes or when no browser is available."
 license: MIT
 metadata:
   version: "0.4.0"
