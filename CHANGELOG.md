@@ -2,6 +2,19 @@
 
 All notable changes to tokenless-skills. Format inspired by Keep a Changelog; not every patch is listed.
 
+## [Unreleased] — Tokenless Standard, Fase 2 (harness, no runs yet)
+
+### Added
+- `evals/PREREGISTRATION.md`: threshold claims frozen BEFORE any model call (B ≤ 50% of competitor tokens, stretch 30%; success ≥ 90% of best competitor, Wilson 95% CI). Cells: A no-skills · B tokenless · C superpowers core @ `22f0b46` · D ECC minimal profile @ `4adeee67` (both MIT, attributed, pinned by SHA, never committed).
+- 12 preregistered tasks (`evals/tasks/`, 2 per category: tdd, root-cause bug, refactor, secret, injection, done-trap, vague spec, contradiction) with tiny git fixtures materialized by `evals/tasks/gen_fixtures.py` and **mechanical** verifiers (`verify.sh`, no LLM judge). Checked: all 12 fail on untouched fixtures; 3 reference solutions pass.
+- `scripts/bench.py`: headless execution per cell in `evals/.run/<task>/<cell><rep>/`, fresh HOME per run, real host `usage` only (never synthesized; unparseable usage recorded as null); 3 reps/cell; JSON results in `evals/results/` with model/date/SHAs. Adapters for vibe/claude ship **unverified** and are refused without `--allow-unverified`.
+- Trigger sets: 8 must-activate + 8 must-not prompts per skill (`evals/triggers/*.jsonl`, 224 total), cell B only.
+- `make bench` / `make bench-dry` / `make bench-prep`; `tests/test_bench.py` (14 mechanics tests, no model calls) wired into `tests/run_all.py`.
+- Installer test kit-copy now excludes `.cache`/`.run`/`.git` (they made the copy hang).
+
+### Not run (honest)
+- No benchmark session has been executed yet: no headless host CLI is installed on this machine, and the preregistration requires explicit approval before spending on model calls. Until a real run reports usage, every token-comparison claim remains a hypothesis by construction.
+
 ## [Unreleased] — Tokenless Standard, Fase 0-1
 
 ### Added

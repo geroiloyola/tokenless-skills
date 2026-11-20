@@ -1,0 +1,16 @@
+{"prompt": "I have a vague idea for a feature, help me spec it", "expect": "yes"}
+{"prompt": "several designs would work here, help me decide", "expect": "yes"}
+{"prompt": "let's spec this before planning", "expect": "yes"}
+{"prompt": "clarify what the user actually wants before coding", "expect": "yes"}
+{"prompt": "draft acceptance criteria for this request", "expect": "yes"}
+{"prompt": "the requirement is ambiguous, work it out", "expect": "yes"}
+{"prompt": "before write-plan, build the spec", "expect": "yes"}
+{"prompt": "turn this request into a spec", "expect": "yes"}
+{"prompt": "implement task 3 of the plan", "expect": "no"}
+{"prompt": "run the debugger", "expect": "no"}
+{"prompt": "review my diff", "expect": "no"}
+{"prompt": "commit now", "expect": "no"}
+{"prompt": "the tests are failing", "expect": "no"}
+{"prompt": "what is for lunch", "expect": "no"}
+{"prompt": "fix the typo in readme", "expect": "no"}
+{"prompt": "measure the benchmark", "expect": "no"}

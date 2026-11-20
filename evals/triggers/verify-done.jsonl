@@ -1,0 +1,16 @@
+{"prompt": "I am about to push, verify everything", "expect": "yes"}
+{"prompt": "before we open the PR, run the gates", "expect": "yes"}
+{"prompt": "is the change really done? verify", "expect": "yes"}
+{"prompt": "run checks and review the diff before declaring done", "expect": "yes"}
+{"prompt": "final check before commit", "expect": "yes"}
+{"prompt": "verify against the spec before finishing", "expect": "yes"}
+{"prompt": "run the verification gate", "expect": "yes"}
+{"prompt": "we finished task 3, verify it", "expect": "yes"}
+{"prompt": "implement feature X", "expect": "no"}
+{"prompt": "brainstorm the spec", "expect": "no"}
+{"prompt": "explain decorators", "expect": "no"}
+{"prompt": "update the dependency", "expect": "no"}
+{"prompt": "start the dev server", "expect": "no"}
+{"prompt": "what is in .gitignore", "expect": "no"}
+{"prompt": "remember this preference", "expect": "no"}
+{"prompt": "start task 1 of the new plan", "expect": "no"}

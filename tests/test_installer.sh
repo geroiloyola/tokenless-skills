@@ -18,7 +18,10 @@ trap 'rm -rf "$BASE"' EXIT
 
 setup_kit() { # copy kit to $1/kit, isolated home at $2
   mkdir -p "$1/kit" "$2"
-  cp -r "$KIT_ROOT"/. "$1/kit/"
+  # exclude heavyweight/instrumentation dirs: .git, caches, eval scratch
+  (cd "$KIT_ROOT" && tar --exclude=./.git --exclude=./evals/.cache \
+      --exclude=./evals/.run --exclude=./__pycache__ -cf - .) \
+      | (cd "$1/kit" && tar -xf -)
   rm -rf "$1/kit/.git"
   export HOME="$2"
 }

@@ -1,0 +1,16 @@
+{"prompt": "set up a new AGENTS.md for this repo", "expect": "yes"}
+{"prompt": "we start in an unfamiliar repo, build the context file", "expect": "yes"}
+{"prompt": "I keep breaking conventions again, refresh AGENTS.md", "expect": "yes"}
+{"prompt": "document the verified commands for this project", "expect": "yes"}
+{"prompt": "onboard me: create the repo map and commands", "expect": "yes"}
+{"prompt": "update AGENTS.md, it is stale", "expect": "yes"}
+{"prompt": "write AGENTS.md before we start tasks", "expect": "yes"}
+{"prompt": "this repo needs an onboarding file", "expect": "yes"}
+{"prompt": "implement the search bar", "expect": "no"}
+{"prompt": "debug the crash", "expect": "no"}
+{"prompt": "review this diff", "expect": "no"}
+{"prompt": "brainstorm the spec", "expect": "no"}
+{"prompt": "run tests", "expect": "no"}
+{"prompt": "explain AGENTS.md in theory", "expect": "no"}
+{"prompt": "commit the changes", "expect": "no"}
+{"prompt": "explain the build error", "expect": "no"}

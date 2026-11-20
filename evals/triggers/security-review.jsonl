@@ -1,0 +1,16 @@
+{"prompt": "security pass on this diff before merge", "expect": "yes"}
+{"prompt": "check for secrets in what I changed", "expect": "yes"}
+{"prompt": "is this payment endpoint change safe?", "expect": "yes"}
+{"prompt": "review the auth changes", "expect": "yes"}
+{"prompt": "scan the diff for injection risks", "expect": "yes"}
+{"prompt": "we touch user uploads now, security review", "expect": "yes"}
+{"prompt": "before I merge this query change, review it", "expect": "yes"}
+{"prompt": "audit my diff for vulnerabilities", "expect": "yes"}
+{"prompt": "implement the endpoint", "expect": "no"}
+{"prompt": "fix failing tests", "expect": "no"}
+{"prompt": "refactor utils", "expect": "no"}
+{"prompt": "explain OWASP top 10", "expect": "no"}
+{"prompt": "plan next quarter", "expect": "no"}
+{"prompt": "write the docs", "expect": "no"}
+{"prompt": "run the benchmark", "expect": "no"}
+{"prompt": "commit this", "expect": "no"}

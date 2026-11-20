@@ -1,0 +1,16 @@
+{"prompt": "remember that tricky trick we found", "expect": "yes"}
+{"prompt": "record that pattern, it worked well", "expect": "yes"}
+{"prompt": "that workaround saved us, keep it", "expect": "yes"}
+{"prompt": "save this lesson with confidence scoring", "expect": "yes"}
+{"prompt": "note this pattern for next time", "expect": "yes"}
+{"prompt": "this hack worked twice now, retain it", "expect": "yes"}
+{"prompt": "keep track of what worked in this repo", "expect": "yes"}
+{"prompt": "capture that instinct", "expect": "yes"}
+{"prompt": "fix the failing test", "expect": "no"}
+{"prompt": "what is my git status", "expect": "no"}
+{"prompt": "delete the build artifacts", "expect": "no"}
+{"prompt": "review PR 12", "expect": "no"}
+{"prompt": "plan the next sprint", "expect": "no"}
+{"prompt": "toggle the dark mode setting", "expect": "no"}
+{"prompt": "what year is it", "expect": "no"}
+{"prompt": "disable the linter", "expect": "no"}

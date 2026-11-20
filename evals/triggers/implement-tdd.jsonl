@@ -1,0 +1,16 @@
+{"prompt": "implement the CSV export feature", "expect": "yes"}
+{"prompt": "build the upload endpoint", "expect": "yes"}
+{"prompt": "fix this bug", "expect": "yes"}
+{"prompt": "add pagination to search", "expect": "yes"}
+{"prompt": "make it work: the OAuth flow", "expect": "yes"}
+{"prompt": "implement the retry logic", "expect": "yes"}
+{"prompt": "add a feature that caps basket size", "expect": "yes"}
+{"prompt": "build it", "expect": "yes"}
+{"prompt": "why is prod down right now, find the cause", "expect": "no"}
+{"prompt": "review this diff", "expect": "no"}
+{"prompt": "brainstorm ideas for the roadmap", "expect": "no"}
+{"prompt": "just answer what REST means", "expect": "no"}
+{"prompt": "replace the footer text", "expect": "no"}
+{"prompt": "check the build before I push", "expect": "no"}
+{"prompt": "remember that I prefer tabs", "expect": "no"}
+{"prompt": "summarize your changes", "expect": "no"}

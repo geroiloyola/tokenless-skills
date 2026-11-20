@@ -16,6 +16,7 @@ SUITES = [
     ("skill checker tests",          [sys.executable, "-m", "unittest", "-q", "tests.test_check_skills"]),
     ("guard tests",                  [sys.executable, "tests/test_guard.py"]),
     ("installer tests (isolated)",   ["bash", "tests/test_installer.sh"]),
+    ("bench harness tests",          [sys.executable, "-m", "unittest", "-q", "tests.test_bench"]),
 ]
 
 results = []

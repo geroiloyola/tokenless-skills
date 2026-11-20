@@ -1,0 +1,16 @@
+{"prompt": "verify the new settings page renders right", "expect": "yes"}
+{"prompt": "check the UI in a browser after this change", "expect": "yes"}
+{"prompt": "before claiming the modal works, test it in a browser", "expect": "yes"}
+{"prompt": "did /dashboard break? test in a real browser", "expect": "yes"}
+{"prompt": "test the checkout flow end to end in the browser", "expect": "yes"}
+{"prompt": "screenshot the page at 375 and 1440", "expect": "yes"}
+{"prompt": "are console errors gone after my fix?", "expect": "yes"}
+{"prompt": "test the a11y basics of this screen", "expect": "yes"}
+{"prompt": "fix the SQL injection", "expect": "no"}
+{"prompt": "write unit tests for parser", "expect": "no"}
+{"prompt": "implement the modal", "expect": "no"}
+{"prompt": "review the diff", "expect": "no"}
+{"prompt": "explain the component tree", "expect": "no"}
+{"prompt": "commit now", "expect": "no"}
+{"prompt": "plan the UI redesign", "expect": "no"}
+{"prompt": "what does REST mean", "expect": "no"}
