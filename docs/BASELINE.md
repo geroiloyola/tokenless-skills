@@ -124,6 +124,9 @@ Estado del analisis: solo lectura. Ningun skill fue modificado.
    distintos, barras de calidad duplicadas. (Solapamiento 3)
 4. eval-harness referencia `prompts/task-templates.md` "in the kit repo"
    (opcional) y metrica "tokens" sin procedimiento de medicion por host.
+   (CERRADO Fase 1/4: apunta ahora a `evals/tasks/README.md`; `prompts/`
+   fue eliminado del repo. Medicion por host: pendiente de sesion real,
+   ver `evals/PREREGISTRATION.md` y `evals/LOG.md`.)
 5. Descripciones sin anti-disparador ("no usar para...") en las 14 skills;
    exceso de activaciones (sobre-trigger). Medicion: 0/14 tienen anti-trigger.
 6. 11/14 descripciones exceden el presupuesto de 40 tokens (41-53). Fase 1.

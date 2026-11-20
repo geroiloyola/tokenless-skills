@@ -44,3 +44,16 @@ To turn one into a measurement, the minimal credible setup is:
    compared (description-only vs always-loaded body).
 
 Until such a harness has actually run, the README keeps the hypothesis label.
+
+## Post-v1.0.0 state (2026-11)
+
+- Tag `v1.0.0` exists at `5d93662` and tagging rules above still apply to the
+  next tag (do not move tags; new tag on a HEAD that passed all gates).
+- The preregistered benchmark harness (supersedes the generic method above:
+  `evals/PREREGISTRATION.md`, threshold claims frozen before any run) is
+  **built and mechanics-tested but has zero executed sessions** — round 0 is
+  blocked on auth for a headless host CLI (`evals/LOG.md`).
+- Hard gate for any future release whose notes mention capability or token
+  comparisons: at least one adapter-verified session with real host `usage`
+  must exist in `evals/results/` first. Without it, releases must keep every
+  comparison labelled a hypothesis.

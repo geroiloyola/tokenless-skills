@@ -2,7 +2,7 @@
 
 **14 ultra-light agent skills (369-572 body tokens each, 464 measured mean) with an always-loaded cost of 600 tokens.** The design goal: maximum practical agent workflow capability per token, without sacrificing verification discipline.
 
-> **Claims, honestly** — token figures are **measured with tiktoken `o200k_base`** by `scripts/measure_tokens.py --json evals/results/tokens-baseline.json` (raw JSON and command are in the repo): bodies 369-572 tokens per skill (mean 464); always-loaded description cost 600 total. The chars/4 fallback was validated against the tokenizer at 2.6% mean error. Worst case, if a session actually loaded every skill body: ~7,096 tokens (descriptions + all 14 bodies) — unrealistic; a session typically loads 2-4 skills (~1,000 tokens). Claims about matching the capability of larger frameworks, or any %-comparison against other skill systems, are **hypotheses: none has been benchmarked yet. A preregistered A/B/D harness (no skills / tokenless / competitor core) with raw results versioned in `evals/results/` is the follow-up work; until then, treat those comparisons as design intent, not evidence.**
+> **Claims, honestly** — token figures are **measured with tiktoken `o200k_base`** by `scripts/measure_tokens.py --json evals/results/tokens-baseline.json` (raw JSON and command are in the repo): bodies 369-572 tokens per skill (mean 464); always-loaded description cost 600 total. The chars/4 fallback was validated against the tokenizer at 2.6% mean error. Worst case, if a session actually loaded every skill body: ~7,096 tokens (descriptions + all 14 bodies) — unrealistic; a session typically loads 2-4 skills (~1,000 tokens). Claims about matching the capability of larger frameworks, or any %-comparison against other skill systems, are **hypotheses: none has been benchmarked yet (round 0: the one approved verification session is blocked on host authentication — `evals/LOG.md`). The preregistered A/B/C/D harness (no skills / tokenless / superpowers core / ECC minimal profile; `evals/PREREGISTRATION.md`, raw results versioned in `evals/results/`) is built and its mechanics are fully tested: `make bench` runs it the moment a headless host CLI is authenticated. Until real runs exist, treat those comparisons as design intent, not evidence.**
 
 ## Install
 
@@ -85,7 +85,9 @@ The Vibe-mode guard (`extras/vibe/guard.py`) is a **best-effort accident filter,
 
 ```
 skills/            14 skills + SKILL_MASTER.md (authoring doctrine)
-scripts/           check_skills.py (doctrine validation)
+evals/             preregistered A/B/C/D benchmark: tasks, triggers, harness, results
+                   (PREREGISTRATION.md is frozen BEFORE runs; LOG.md is the iteration ledger)
+scripts/           check_skills.py (doctrine validation), bench.py (headless harness only)
 tests/             guard / checker / installer suites, python3 tests/run_all.py
 extras/vibe/       Vibe adapter (guard.py, qa.py, hooks.toml, reviewer/plan agents)
 extras/chatbot/    concatenated single-file export for chat UIs
