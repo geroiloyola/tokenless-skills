@@ -1,3 +1,5 @@
 __pycache__/
 *.pyc
 .tsk-backup/
+evals/.cache/
+evals/.run/
