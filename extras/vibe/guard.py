@@ -1,56 +1,99 @@
 #!/usr/bin/env python3
-"""Guard de seguridad para hooks de Mistral Vibe CLI (hooks.toml).
+"""Security guard for AI agent tool hooks (e.g. Mistral Vibe hooks.toml).
 
-Modos:
-  bash     -> pre_tool hook para `bash`/`process_start`: bloquea comandos destructivos.
-  protect  -> pre_tool hook para write_file/edit: protege archivos sensibles.
+IMPORTANT SCOPE: this is a best-effort *accident guard*, not a sandbox and
+not a security boundary. It blocks common destructive mistakes by pattern;
+it cannot stop a determined bypass (command construction, obfuscation,
+interpreters). Defense in depth still requires OS permissions, containers,
+and the host's own approval mechanisms.
 
-Contrato Vibe hooks: payload JSON en stdin; respuesta JSON en stdout.
-  exit 0 + {"decision":"deny","reason":"..."}  -> bloquea
-  exit 0 + stdout vacío                        -> permite (passthrough)
+Modes (passed as argv[1]):
+  bash     -> pre_tool hook for shell tools: blocks destructive commands.
+  protect  -> pre_tool hook for write/edit tools: blocks writes to secrets
+              and critical files. FAILS CLOSED on malformed input: if the
+              guard cannot tell what file is being written, it denies and
+              asks the host/user for explicit confirmation. Valid harmless
+              writes are never affected.
+
+Contract (Vibe-style hooks): JSON payload on stdin; JSON response on stdout.
+  exit 0 + {"decision":"deny","reason":"..."}  -> block
+  exit 0 + empty stdout                        -> allow (passthrough)
 """
+
 import json
+import os
 import re
 import sys
 
-# --- patrones de comandos destructivos (regex, case-insensitive) ---
+# --- destructive command patterns (compiled case-insensitive; input is also
+# normalized: quotes are treated as neutral characters so `rm -rf "$HOME"`
+# is normalized to the same string as `rm -rf $HOME`) -----------------------
 DANGEROUS = [
-    (r"\brm\s+(-[a-z]*[rf][a-z]*\s+)+/(\s|$)", "borrado recursivo de la raíz"),
-    (r"\brm\s+(-[a-z]*[rf][a-z]*\s+)+(~|\$HOME)(\s|$)", "borrado recursivo del home"),
-    (r"\brm\s+(-[a-z]*[rf][a-z]*\s+)+\.git\b", "borrado del directorio .git"),
-    (r"\bgit\s+push\b[^\n]*(--force|-f)(\s|$)(?!.*--force-with-lease)", "git push --force sin lease"),
-    (r"\bgit\s+reset\s+--hard\b[^\n]*\borigin", "reset --hard contra origin"),
-    (r"\bgit\s+clean\s+-[a-z]*[xdf]", "git clean destructivo"),
-    (r"\bgit\s+checkout\s+--\s+\.", "descarta todos los cambios locales"),
-    (r"\b(mkfs|dd\s+if=.*of=/dev/)", "escritura a dispositivo de bloque"),
+    # rm targeting catastrophic destinations after recursive/force flags
+    (r"\brm\s+(?:-\w+\s+)+(/|/\*|~|\$home|\*|\.\.?|\.git)(/|\s|$)",
+     "recursive delete of root, home, .git, or wildcard target"),
+    (r"\brm\s+(?:-\w+\s+)+(\$|\s|)\(", "rm targeting a command substitution"),
+    (r"\brm\s+(?:-\w+\s+)+`\s*rm\s", "rm targeting a backtick substitution"),
+    # wildcard/root deletes regardless of spelling (e.g. cd / && rm -rf *)
+    (r"\bcd\s+/\s*(&&|;)\s*rm\s+", "change to root, then delete"),
+    (r"\brm\s+-\w+\s+\*\s*$", "wildcard delete of the current directory"),
+    (r"\brm\s+-\w+\s+\.\s*$", "delete the current directory"),
+    (r"\bfind\s+(/\s*|~\s*)(?:.*)\bdelete\b", "find -delete (delete via find)"),
+    (r"\bmkfs\b", "make filesystem (disk wipe)"),
+    (r"\bdd\b[^;&|\n]*\bof=/dev/(?!null)", "write directly to a block device"),
+    (r"\bshred\b[^;&|\n]*/dev/(?!null)", "shred a block device"),
     (r":\(\)\s*\{\s*:\|\s*:\s*&\s*\}\s*;", "fork bomb"),
-    (r"\bchmod\s+-R\s+777\b", "chmod 777 recursivo"),
-    (r"\b(curl|wget)\b[^\n]*\|\s*(bash|sh)\b", "pipe remoto a shell"),
-    (r"\bnpm\s+publish\b|\btwine\s+upload\b|\bcargo\s+publish\b", "publicación de paquete"),
-    (r"\bdrop\s+(database|table)\b", "DROP de base de datos"),
-    (r"\btruncate\s+table\b", "TRUNCATE de tabla"),
-    (r">\s*/dev/sd[a-z]", "escritura a disco crudo"),
+    (r"\bchmod\s+777\b(?:\s+-\w+)+|\bchmod(?:\s+-\w+)+\s+777\b", "chmod 777 (any flag order)"),
+    (r">\s*/dev/sd[a-z]", "raw disk write redirection"),
+    # force pushes: force-with-lease=false first (disables the lease), then
+    # classic flags, then the +refspec form
+    (r"\bgit\s+push\b[^;&|\n]*--force-with-lease=(false|no)\b", "force push with lease disabled"),
+    (r"\bgit\s+push\b(?![^;&|\n]*--force-with-lease\b)[^;&|\n]*(--force\b|\s-f\b)", "git push --force without lease"),
+    (r"\bgit\s+push\b[^;&|\n]*\s\+[\w\.]+", "force push via +refspec"),
+    (r"\bgit\s+reset\s+--hard\b[^;&|\n]*\borigin\b", "reset --hard against origin"),
+    (r"\bgit\s+clean\s+-[a-z]*[xdf]", "git clean (destructive)"),
+    (r"\bgit\s+checkout\s+--\s+\.", "git checkout -- . (discard all local changes)"),
+    # remote code execution shapes
+    (r"\b(curl|wget)\b[^\n]*\|\s*(ba|z|da|k)?sh\b", "pipe remote content to a shell"),
+    (r"\b(ba|z|da|k)?sh\s+<\(\s*(curl|wget)\b", "execute downloaded script via process substitution"),
+    (r"\beval\s+(\"|'|)\$\((curl|wget)\b", "eval of downloaded content"),
+    (r"\b(curl|wget)\b[^\n]*\|\s*python(3)?\b", "pipe remote content to python"),
+    # publishing / SQL
+    (r"\bnpm\s+publish\b(?!.*--dry-run)|\btwine\s+upload\b|\bcargo\s+publish\b", "package publication"),
+    (r"\bdrop\s+(database|table)\b", "SQL DROP"),
+    (r"\btruncate\s+table\b", "SQL TRUNCATE"),
 ]
 
-# --- archivos que un agente no debe sobrescribir sin humano ---
+# Command-substitution children are checked too: `rm -rf $(...)` or
+# `curl <$(reveal-secrets)` — if the substitution body itself looks
+# destructive/remote, deny. Bodies are extracted and rescanned.
+SUBSTITUTION = re.compile(r"\$\((.*?)\)|`(.*?)`", re.S)
+
+# --- protected paths (compiled case-insensitive; backslashes normalized) ----
 PROTECTED_PATHS = [
-    (r"(^|/)\.env(\.[\w.-]+)?$", "archivo .env (secretos)"),
-    (r"(^|/)\.git/", "interior de .git"),
-    (r"(package-lock\.json|pnpm-lock\.yaml|yarn\.lock|poetry\.lock|Cargo\.lock|uv\.lock|go\.sum)$", "lockfile (regenerar con el gestor, no editar a mano)"),
-    (r"(^|/)(id_rsa|id_ed25519|\.netrc|\.npmrc|\.pypirc)$", "credenciales"),
+    (r"(^|/)\.env(\.[\w.\-]+)?$", "a .env file (secrets)"),
+    (r"(^|/)\.?secrets?\.(env|key)$", "a secrets file"),
+    (r"(^|/)\.git/|^\.git$", "inside .git"),
+    (r"(^|/)\.ssh/", "inside ~/.ssh"),
+    (r"(^|/)(id_rsa|id_dsa|id_ecdsa|id_ed25519)(\).\w+)?$", "an SSH private key"),
+    (r"(^|/)(\.netrc|\.npmrc|\.pypirc)$", "a credentials file"),
+    (r"(package-lock\.json|pnpm-lock\.yaml|yarn\.lock|poetry\.lock|cargo\.lock|uv\.lock|go\.sum)$",
+     "a lockfile (regenerate with the package manager, do not hand-edit)"),
 ]
 
 
-def respond(decision=None, reason=None, system_message=None):
+def respond(decision=None, reason=None):
     out = {}
     if decision:
         out["decision"] = decision
     if reason:
         out["reason"] = reason
-    if system_message:
-        out["system_message"] = system_message
     print(json.dumps(out))
     sys.exit(0)
+
+
+def deny(reason):
+    respond(decision="deny", reason=reason)
 
 
 def get_command(payload):
@@ -58,7 +101,7 @@ def get_command(payload):
     if isinstance(ti, str):
         return ti
     for key in ("command", "cmd", "script"):
-        if isinstance(ti.get(key), str):
+        if isinstance(ti, dict) and isinstance(ti.get(key), str):
             return ti[key]
     return ""
 
@@ -73,42 +116,82 @@ def get_path(payload):
     return ""
 
 
+def normalize(text):
+    # quotes and backslashes are neutral for our detection purposes; keep
+    # everything else verbatim (conservative normalization).
+    text = text.replace("\\", "/")
+    for ch in "\"'`":
+        text = text.replace(ch, " ")
+    return text
+
+
+def check_dangerous(text):
+    low = normalize(text).lower()
+    for pattern, label in DANGEROUS:
+        if re.search(pattern, low):
+            return label
+    for m in SUBSTITUTION.findall(text):
+        inner = m[0] or m[1]
+        if not inner:
+            continue
+        inner_low = normalize(inner).lower()
+        for pattern, label in DANGEROUS:
+            if re.search(pattern, inner_low):
+                return f"{label} (inside a command substitution)"
+    return None
+
+
+def check_protected(path):
+    norm = os.path.normpath(normalize(path)).replace("\\", "/").lower()
+    # best-effort symlink resolution for existing paths; a path that resolves
+    # through a symlink on the protected list is protected too.
+    der = path
+    try:
+        if os.path.islink(path) or os.path.exists(path):
+            der = os.path.realpath(path)
+    except OSError:
+        pass
+    der = os.path.normpath(normalize(der)).replace("\\", "/").lower()
+    for pattern, label in PROTECTED_PATHS:
+        if re.search(pattern, norm) or re.search(pattern, der):
+            return label
+    return None
+
+
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "bash"
     try:
         payload = json.load(sys.stdin)
-    except Exception:
-        # payload ilegible: no bloquear, pero avisar en stderr
-        print("guard: payload inválido", file=sys.stderr)
-        sys.exit(0)
-
-    text = get_command(payload) if mode == "bash" else get_path(payload)
-    if not text:
+        if not isinstance(payload, dict):
+            raise ValueError("payload is not an object")
+    except Exception as err:
+        if mode == "protect":
+            # fail closed: unknown write target ~= assume dangerous
+            deny(f"Guard could not parse the write request ({err.__class__.__name__}); "
+                 "denying in protect mode. Repeat the edit if it is legitimate.")
+        print("guard: invalid payload (allowed, bash mode fail-open)", file=sys.stderr)
         sys.exit(0)
 
     if mode == "bash":
-        low = text.lower()
-        for pattern, label in DANGEROUS:
-            if re.search(pattern, low):
-                respond(
-                    decision="deny",
-                    reason=(
-                        f"Bloqueado por guard: {label}. "
-                        "Si es intencional, pídelo explícitamente al humano y "
-                        "ejecútalo tú fuera del agente."
-                    ),
-                )
+        text = get_command(payload)
+        if not text:
+            sys.exit(0)  # nothing we recognize — passthrough (documented limitation)
+        label = check_dangerous(text)
+        if label:
+            deny(f"Guard blocked: {label}. "
+                 "This pattern is on the destructive-command blocklist. "
+                 "If it is intentional, ask the human to run it outside the agent.")
     elif mode == "protect":
-        norm = text.replace("\\", "/")
-        for pattern, label in PROTECTED_PATHS:
-            if re.search(pattern, norm):
-                respond(
-                    decision="deny",
-                    reason=(
-                        f"Bloqueado por guard: {label}. "
-                        "Pide confirmación al humano antes de modificar este archivo."
-                    ),
-                )
+        path = get_path(payload)
+        if not path:
+            deny("Guard could not determine the file path of this write "
+                 "(protect mode fails closed on unknown targets).")
+        label = check_protected(path)
+        if label:
+            deny(f"Guard blocked: {path} matches {label}. "
+                 "Get explicit human confirmation before modifying this file.")
+    else:
+        print(f"guard: unknown mode '{mode}' (allowed)", file=sys.stderr)
     sys.exit(0)
 
 

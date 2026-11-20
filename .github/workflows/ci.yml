@@ -1,0 +1,41 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2 (pinned)
+
+      - name: Syntax-check shell scripts
+        run: bash -n install.sh && bash -n tests/test_installer.sh
+
+      - name: Validate skills against kit doctrine
+        run: python3 scripts/check_skills.py --strict
+
+      - name: Guard + checker unit tests
+        run: |
+          python3 tests/test_guard.py
+          python3 tests/test_check_skills.py
+
+      - name: Installer tests (isolated temp HOME)
+        run: bash tests/test_installer.sh
+
+      - name: Workflow YAML parses
+        run: python3 -c "import yaml; yaml.safe_load(open('.github/workflows/ci.yml'))"
+
+      - name: No unexpected generated artifacts
+        run: |
+          ! ls errors.txt webcheck.json 2>/dev/null
+          ! git ls-files --others --exclude-standard | grep -E '\.(log|tmp)$|artifacts/'
+
+      - name: Referenced files exist (skills, scripts, docs)
+        run: python3 scripts/check_skills.py --strict && grep -o 'scripts/[a-z_]*\.py' README.md 2>/dev/null | sort -u | while read -r f; do [ -f "$f" ] || { echo "missing $f"; exit 1; }; done

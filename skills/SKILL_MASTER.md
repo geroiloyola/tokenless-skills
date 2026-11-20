@@ -1,7 +1,7 @@
 # SKILL_MASTER.md — the standard for every skill in this kit
 
 > Human note: hand this file plus your request to the agent. It will produce a
-> skill in the same shape, size and doctrine as the 13 shipped ones. Do not edit
+> skill in the same shape, size and doctrine as the 14 shipped ones. Do not edit
 > it per-skill; extend it only when the doctrine changes.
 
 ## 0. Hand-off prompt (copy, fill, paste)
@@ -181,13 +181,11 @@ one output line; no example needed; 38 lines.
 | Always loaded | ~100 tokens per skill (name + description) |
 | Body target | 350–650 tokens; hard cap 1000 |
 | Digest | ≤ 500 lines, no frontmatter, read only on demand |
-| Kit total | 14 skills ≈ 1.4k always-loaded, ≈ 6.9k worst case (for current numbers trust check_skills.py, not this row) |
+| Kit total | 14 skills ≈ 0.7k always-loaded (descriptions), ≈ 7.3k worst case if every skill fires (trust `check_skills.py` over this row) |
 
 ## 10. Where to install
 
-| Target | Path | When |
-|---|---|---|
-| Host agent | User scope | Project scope |
+| Host | User scope | Project scope |
 |---|---|---|
 | Vibe | `~/.vibe/skills/<name>/` | `.vibe/skills/<name>/` |
 | Claude Code | `~/.claude/skills/<name>/` | `.claude/skills/<name>/` |
@@ -197,4 +195,4 @@ one output line; no example needed; 38 lines.
 | Antigravity | `~/.gemini/config/skills/<name>/` | `.agents/skills/<name>/` |
 | Any agent (dotfiles) | `~/.agents/skills/<name>/` | `.agents/skills/<name>/` |
 
-Install to all detected hosts with `scripts/install.sh` (see the kit README). Verify with your host's skill listing (`/skills` in Vibe, the `/` picker in Claude Code, `@skill-id` in OpenCode, `$skill-name` in Codex).
+Install to all detected hosts with `./install.sh` (see the kit README). Verify with your host's skill listing (`/skills` in Vibe, the `/` picker in Claude Code, `@skill-id` in OpenCode, `$skill-name` in Codex).

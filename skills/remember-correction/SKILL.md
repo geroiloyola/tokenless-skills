@@ -20,6 +20,9 @@ A correction is a bug report against your behavior. Fix it permanently.
 4. Re-read the line you wrote and check it is actionable by a different agent with no context.
 5. Confirm to the user with the exact line, no explanation.
 
+## Output
+`appended | <the exact line written to lessons.md>` — quote it verbatim to the user.
+
 ## Do not record
 - One-off task preferences, secrets, or anything already in AGENTS.md.
 - Vague lessons ("be more careful"). If you cannot state a concrete action, ask one question and record the answer.

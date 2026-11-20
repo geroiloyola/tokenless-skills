@@ -1,36 +1,89 @@
 # tokenless-skills
 
-**14 ultra-light agent skills (~500 tokens each) that deliver 90% of the process value of ECC or Superpowers with ~5% of the token cost.**
+**14 ultra-light agent skills (~350–600 tokens each, ~450 measured average) with an always-loaded cost of only ~0.7k tokens.** The design goal: maximum practical agent workflow capability per token, without sacrificing verification discipline.
 
-## Install (1 command)
+> **Claims, honestly** — "~500 tokens each" is a measured estimate (chars/4; see `scripts/check_skills.py --json`). The suite's *relative* cost is much lower than always-loaded frameworks because only per-skill descriptions stay resident and bodies load on demand. Claims about matching the capability of larger frameworks are **hypotheses, not benchmarks** — we document a method in `RELEASE.md` §benchmarks for measuring them; none has been run against model APIs with published conditions. Treat those comparisons as design intent.
+
+## Install
+
+The installer reads the repository, so distribution is clone-then-run (pinned clones give you git-level integrity):
 
 ```bash
-# Global (all agents on this machine)
-curl -fsSL https://raw.githubusercontent.com/{user}/tokenless-skills/main/install.sh | bash
+# Global (user scope: all agents on this machine with an existing config dir)
+git clone --depth 1 --branch v1.0.0 https://github.com/geroiloyola/tokenless-skills.git
+cd tokenless-skills && ./install.sh
 
-# Project-only (commit to repo)
-./install.sh
+# Project-only (commits to your repo; installs the universal .agents/skills)
+./install.sh --scope project
+
+# Pick hosts explicitly (vibe, claude, codex, opencode, gemini, antigravity, cursor, agents, opencat)
+./install.sh --agent claude,codex
 ```
+
+> `curl .../install.sh | bash` is intentionally **not** supported — the installer reads sibling files. If you pipe it by mistake it exits with exact clone instructions and touches nothing.
+
+**Safety by construction** ([details in `docs/HOSTS.md`](docs/HOSTS.md)): overwriting an existing kit skill moves the old one to `~/.tsk-backup/` first; third-party skills are never touched; `--dry-run` previews every change; `--uninstall` removes only kit-owned skills and is dry-run by default.
 
 ## Skills
 
 | Skill | Purpose |
 |-------|---------|
 | repo-context | Build verified AGENTS.md |
-| spec-brainstorm | Turn ambiguity into specs |
-| write-plan | Split work into 10–30 min tasks |
-| implement-tdd | Red → Green → Refactor |
+| spec-brainstorm | Turn ambiguity into specs with acceptance criteria |
+| write-plan | Split work into 10–30 min tasks with file contracts |
+| implement-tdd | Red → Green → Refactor, test-first always |
 | systematic-debugging | Root-cause via falsifiable hypotheses |
-| verify-done | Gates + diff + spec checks |
-| remember-correction | Persist 1-line rules |
-| learn-instinct | Pattern → confidence → prune |
+| verify-done | Gates + diff review + spec checks before "done" |
+| remember-correction | Persist user corrections as 1-line rules |
+| learn-instinct | Confidence-scored patterns that promote or prune |
 | subagent-execute | 1 task = 1 worktree = 1 subagent |
-| fresh-review | Blocking, read-only review |
-| webapp-testing | Browser: console, network, a11y |
-| security-review | Secrets, auth, OWASP |
-| design-review | Aesthetic direction + token audit |
-| eval-harness | Re-run 5 tasks on every kit change |
+| fresh-review | Blocking, read-only review in clean context |
+| webapp-testing | Browser: console, network, a11y (with script + MCP ladder) |
+| security-review | Secrets, injection, authz over the diff |
+| design-review | Aesthetic direction + contrast script audit |
+| eval-harness | Re-run 5 fixed tasks on every kit change |
+
+Protocol: `spec-brainstorm → write-plan → implement-tdd → fresh-review → verify-done`, with `subagent-execute` as parallel runner and the two memory skills accumulating rules between sessions.
 
 ## Supported hosts
 
-✅ Claude Code • ✅ Codex • ✅ OpenCode • ✅ Vibe • ✅ Gemini CLI • ✅ Antigravity • ✅ Cursor • ✅ Cursos • Any [Agent Skills 1.0](https://agentskills.io) host
+✅ Claude Code • ✅ Codex • ✅ OpenCode • ✅ Vibe (incl. hooks: security guard + QA) • ✅ Gemini CLI • ⚠️ Antigravity • ⚠️ Cursor • ⚠️ Any [Agent Skills 1.0](https://agentskills.io) host
+
+⚠️ = installer creates the right directories and Agent Skills-conformant folders, but check `docs/HOSTS.md` for per-host capability (activation, memory loading, hooks) before relying on it. Do not assume "files copied" means "features active".
+
+## Usage
+
+Skills are standard Agent Skills 1.0 folders — your host discovers them automatically; invoke by the host's convention (`/` picker, `$name`, `@name`, or just describe the task to match a description). Start with `repo-context` in a new repo: it builds the AGENTS.md every other skill consults.
+
+Editing skills? Author against `skills/SKILL_MASTER.md`, then validate:
+
+```bash
+python3 scripts/check_skills.py --strict
+```
+
+## Update / uninstall
+
+```bash
+git -C tokenless-skills pull && cd tokenless-skills && ./install.sh   # backs up what it replaces
+./install.sh --uninstall            # dry-run: lists what would go
+./install.sh --uninstall --yes      # applies (only kit-owned skills, verified by frontmatter)
+```
+
+`~/.agents/memory/` (lessons, instincts) survives uninstall — it is yours.
+
+## Security limitations (read this)
+
+The Vibe-mode guard (`extras/vibe/guard.py`) is a **best-effort accident filter, not a sandbox, not a security boundary**; bash mode fails open and protect mode fails closed; obfuscated/in-interpreter attacks are outside its threat model by construction. Full analysis and known-bypass ledger: `docs/SECURITY.md`. Report issues per `SECURITY.md`.
+
+## Project layout
+
+```
+skills/            14 skills + SKILL_MASTER.md (authoring doctrine)
+scripts/           check_skills.py (doctrine validation)
+tests/             guard / checker / installer suites, python3 tests/run_all.py
+extras/vibe/       Vibe adapter (guard.py, qa.py, hooks.toml, reviewer/plan agents)
+extras/chatbot/    concatenated single-file export for chat UIs
+docs/              HOSTS.md (compat matrix), SECURITY.md (threat model)
+```
+
+Contributing: `CONTRIBUTING.md` — the short version: a change that grows context must measurably grow capability. Changelog: `CHANGELOG.md`. Releases: `RELEASE.md`. License: MIT (`LICENSE`).

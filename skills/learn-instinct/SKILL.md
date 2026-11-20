@@ -21,6 +21,9 @@ One instinct = one trigger + one action + confidence.
 5. Keep the file under 40 lines. Prune lowest confidence first.
    **On session start, load only instincts with matching scope (global or current repo).**
 
+## Output
+`instinct | confidence <new> | action (appended/bumped/pruned) | file`
+
 ## Quality bar
 - Reject instincts that restate the framework docs, obvious language rules, or a one-time workaround.
 - Reject instincts that are not falsifiable: if you cannot say when it should NOT apply, rewrite it.

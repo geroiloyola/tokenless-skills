@@ -38,7 +38,7 @@ contract. The searchable catalog lives in the upstream skill if installed.
 Open the result in a browser (use the webapp-testing skill) at 375 and 1440. Score out of 10
 on: hierarchy, spacing rhythm, contrast, state coverage, consistency of tokens.
 For **contrast verification**: run `node <skill-dir>/scripts/contrast.mjs --fg=<hex> --bg=<hex>` for each token pair; mark PASS if ratio >=4.5. Otherwise: NOT AUDITED.
-Anything ≤6 means fix it before finishing. Screenshot both widths as evidence.
+Scale anchors: 10 = shippable, coherent, states complete; 7 = good with minor polish; ≤6 = visible defects a user would notice — fix before finishing. Screenshot both widths as evidence.
 
 ## Output
 `direction | tokens used | contrast checks | widths verified | score /10 | fixes applied`

@@ -12,7 +12,7 @@ Scope the diff first; dig only where data crosses a trust boundary.
 
 ## Steps
 1. Map the diff: does it touch input parsing, auth, permissions, payments, uploads, SQL/NoSQL, HTML rendering, file paths, env vars, or dependency manifests? If none, say "no trust boundary in scope" and stop.
-2. Secrets: `git diff --name-only --diff-filter=d | xargs -r grep -nE "sk-|api[_-]?key|secret|token|password|BEGIN .*PRIVATE" --` (diff-filter=d skips deleted paths so grep does not error). Check .env files are untracked and reasons for any new env var.
+2. Secrets: `git diff --name-only --diff-filter=d | xargs -r grep -nE "sk-|api[_-]?key|secret|token|password|BEGIN .*PRIVATE" --` (diff-filter=d skips deleted paths so grep does not error). This greps the touched files as they are now — pre-existing secrets will surface too; confirm a hit was added by this change with `git diff -U0 -- <file> | grep '^+'` before classifying. Check .env files are untracked and reasons for any new env var.
 3. Injection: user input reaching SQL (concat/interp), shell, eval, innerHTML/dangerouslySetInnerHTML, template engines without escaping, path joins with untrusted segments.
    **CSRF**: forms without CSRF tokens or missing `SameSite=Lax` cookies.
 4. Authz: every new endpoint has an auth check; object access verifies ownership, not only login state; no IDOR via sequential IDs; admin routes guarded server-side.
