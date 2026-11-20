@@ -1,0 +1,19 @@
+# ~/.vibe/agents/reviewer.toml
+# Subagente revisor: lectura + comandos de solo lectura. No edita.
+# Se invoca por delegación del agente principal (no aparece en --agent).
+agent_type = "subagent"
+display_name = "Reviewer"
+description = "Revisa un diff como senior: bugs, regresiones, seguridad, tests faltantes."
+safety = "safe"
+active_model = ""   # vacío = hereda el modelo activo; pon p.ej. "mistral-medium-3.5"
+system_prompt_id = "reviewer"
+disabled_tools = ["edit", "write_file"]
+
+[tools.bash]
+permission = "ask"
+
+[tools.read_file]
+permission = "always"
+
+[tools.grep]
+permission = "always"
