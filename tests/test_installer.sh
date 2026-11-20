@@ -161,7 +161,7 @@ setup_kit "$T14" "$H14"
 mkdir -p "$T14/outside"; echo "precious" > "$T14/outside/data.txt"
 mkdir -p "$H14/.claude/skills"
 # Native symlinks need Windows Developer Mode; plain MSYS ln -s falls back to a
-# directory copy. Detect which one we actually got and assert accordingly.
+# directory copy. Detect which one we actually got.
 ln -s "$T14/outside" "$H14/.claude/skills/design-review" 2>/dev/null || true
 IS_SYMLINK=1
 [ -L "$H14/.claude/skills/design-review" ] || IS_SYMLINK=0
@@ -191,13 +191,14 @@ check "collision did not nest backups (v2 kept)" $(grep -q B "$H15/.claude/skill
 # ---------- 16: unknown --agent id is rejected, not silently dropped ----------
 T16="$BASE/t16"; H16="$T16/h"
 setup_kit "$T16" "$H16"
-out=$("$T16/kit/install.sh" --agent cluade 2>&1); rc=$?
+# Invoke through bash so these assertions test installer behavior, not executable mode.
+out=$(bash "$T16/kit/install.sh" --agent cluade 2>&1); rc=$?
 check "unknown host id exits 2" $([ "$rc" -eq 2 ] && echo 0 || echo 1)
 check "unknown host id names itself in the error" $(echo "$out" | grep -q "cluade" && echo 0 || echo 1)
-out2=$("$T16/kit/install.sh" --agent cluade,claude 2>&1)
+out2=$(bash "$T16/kit/install.sh" --agent cluade,claude 2>&1)
 check "mixed valid+unknown id: valid one still installs" $([ -d "$H16/.claude/skills/write-plan" ] && echo 0 || echo 1)
 
 # ---------- summary ----------
 echo
-echo "installer tests: $PASS passed, $FAIL failed$([ ${#FAILED_NAMES[@]} -gt 0 ] && printf ' — %s\n' "${FAILED_NAMES[@]}")"
+ echo "installer tests: $PASS passed, $FAIL failed$([ ${#FAILED_NAMES[@]} -gt 0 ] && printf ' — %s\n' "${FAILED_NAMES[@]}")"
 [ "$FAIL" -eq 0 ] || exit 1
