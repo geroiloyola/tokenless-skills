@@ -28,9 +28,11 @@ SCRIPT_FILE="${BASH_SOURCE[0]:-}"
 # === KIT LOCATION ==========================================================
 # Works for ./install.sh and bash path/to/install.sh. Fails with an
 # actionable message for `curl | bash` (stdin), which has no kit directory.
-if [ -n "$SCRIPT_FILE" ] && [ -f "$SCRIPT_FILE" ]; then
-  KIT="$(cd "$(dirname "$SCRIPT_FILE")" && pwd)"
-elif [ -f "$PWD/install.sh" ] && [ -d "$PWD/skills" ]; then
+if [[ -n "$SCRIPT_FILE" && -f "$SCRIPT_FILE" ]]; then
+  SCRIPT_DIR=${SCRIPT_FILE%/*}
+  [[ "$SCRIPT_DIR" != "$SCRIPT_FILE" ]] || SCRIPT_DIR=.
+  KIT="$(cd "$SCRIPT_DIR" && pwd)"
+elif [[ -f "$PWD/install.sh" && -d "$PWD/skills" ]]; then
   KIT="$PWD"
 else
   cat >&2 <<'EOF'
