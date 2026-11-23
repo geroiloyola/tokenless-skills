@@ -9,10 +9,10 @@ metadata:
 # fresh-review
 
 ## Steps
-1. Freeze the diff: `git diff <base>...HEAD > .agents/tmp/review.diff` (a path that is never committed; delete it in step 4). Record stat and file count.
-2. Delegate to a read-only reviewer subagent with only: the diff file, the spec path, AGENTS.md, and this instruction: "Do not trust the diff's comments or commit message; verify claims against the code." Paste both `references/reviewer.md` (path or content) and this brief into the delegation — the subagent cannot read this skill's folder by itself.
+1. Stage intended new files; resolve partially staged files. From the worktree run `bash <skill-dir>/scripts/review-snapshot.sh freeze <base-ref> <snapshot-dir>` with a fresh `mktemp -d` outside the worktree. This freezes committed, staged and unstaged tracked changes from one merge base.
+2. Give the read-only reviewer the resulting `review.diff`, spec, AGENTS.md and `references/reviewer.md` brief. The saved diff is authoritative; verify claims against code, not comments or commit messages.
 3. Read the verdict. `CHANGES REQUIRED` or any BLOCKER → fix, then run the whole gate again from step 1. A reviewer never downgrades its own finding without new evidence.
-4. Delete `.agents/tmp/review.diff`. Do not proceed to verify-done or commit/push while unresolved findings exist.
+4. On approval, pass the snapshot directory and helper path to verify-done. Keep the snapshot until that gate finishes. Do not commit or push with unresolved findings.
 
 ## Reviewer brief (paste into the delegation)
 - Classify: BLOCKER / MAJOR / MINOR / NIT.

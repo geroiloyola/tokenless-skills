@@ -1,0 +1,48 @@
+[
+  {
+    "id": "feature",
+    "prompt": "Implement total(prices) in app.py. Return the sum of nonnegative integer prices; reject any negative price with ValueError. Cover the behavior with a regression test.",
+    "seed": "def total(prices):\n    raise NotImplementedError\n",
+    "solution": "def total(prices):\n    if any(p < 0 for p in prices):\n        raise ValueError('negative price')\n    return sum(prices)\n",
+    "check": "from app import total\nassert total([2, 3]) == 5\nassert total([]) == 0\ntry:\n    total([1, -1])\nexcept ValueError:\n    pass\nelse:\n    raise AssertionError('negative price accepted')",
+    "expected": "implement-tdd",
+    "forbidden": ["webapp-testing"]
+  },
+  {
+    "id": "bug",
+    "prompt": "Find the root cause of the final item disappearing from the last page, fix it in app.py, and add a test. Keep pages one-indexed.",
+    "seed": "def page(items, n, size):\n    start = (n - 1) * size\n    return items[start:min(n * size, len(items) - 1)]\n",
+    "solution": "def page(items, n, size):\n    start = (n - 1) * size\n    return items[start:n * size]\n",
+    "check": "from app import page\nassert page([1, 2, 3], 1, 2) == [1, 2]\nassert page([1, 2, 3], 2, 2) == [3]\nassert page([1, 2, 3], 3, 2) == []\nassert page([], 1, 2) == []",
+    "expected": "systematic-debugging",
+    "forbidden": ["design-review"]
+  },
+  {
+    "id": "refactor",
+    "prompt": "Extract a shared normalize(value) helper in app.py. Both functions must use it without changing their observable behavior.",
+    "seed": "def username(value):\n    return value.strip().lower()\n\ndef email(value):\n    return value.strip().lower()\n",
+    "solution": "def normalize(value):\n    return value.strip().lower()\n\ndef username(value):\n    return normalize(value)\n\ndef email(value):\n    return normalize(value)\n",
+    "check": "import app\nassert app.username('  ALICE ') == 'alice'\nassert app.email(' A@B.CO ') == 'a@b.co'\napp.normalize = lambda _: 'shared'\nassert app.username('a') == app.email('b') == 'shared'",
+    "expected": null,
+    "forbidden": ["spec-brainstorm", "webapp-testing"]
+  },
+  {
+    "id": "ui",
+    "prompt": "Fix the static signup page in index.html: add a visible Email label associated with the type=email input and a named submit button. Keep the existing heading and form.",
+    "path": "index.html",
+    "seed": "<main><h1>Sign up</h1><form><input type=\"email\" id=\"email\"><button type=\"submit\"></button></form></main>\n",
+    "solution": "<main><h1>Sign up</h1><form><label for=\"email\">Email</label><input type=\"email\" id=\"email\"><button type=\"submit\">Sign up</button></form></main>\n",
+    "check": "from html.parser import HTMLParser\nfrom pathlib import Path\nclass Page(HTMLParser):\n    def __init__(self):\n        super().__init__()\n        self.tags = []\n    def handle_starttag(self, tag, attrs):\n        self.tags.append([tag, dict(attrs), ''])\n    def handle_data(self, text):\n        if self.tags:\n            self.tags[-1][2] += text\npage = Page()\npage.feed(Path('index.html').read_text())\nassert any(tag == 'h1' and text.strip() == 'Sign up' for tag, attrs, text in page.tags)\nassert any(tag == 'form' for tag, attrs, text in page.tags)\nids = {attrs.get('id') for tag, attrs, _ in page.tags if tag == 'input' and attrs.get('type') == 'email'} - {None, ''}\nassert any(tag == 'label' and attrs.get('for') in ids and text.strip() == 'Email' for tag, attrs, text in page.tags)\nassert any(tag == 'button' and attrs.get('type') == 'submit' and text.strip() for tag, attrs, text in page.tags)",
+    "expected": "design-review",
+    "forbidden": ["security-review"]
+  },
+  {
+    "id": "contract",
+    "prompt": "Migrate app.py's read_record contract from name to display_name. Accept either field, prefer display_name if both exist, preserve id, and return only id and display_name. Keep old records readable.",
+    "seed": "def read_record(record):\n    return {'id': record['id'], 'name': record['name']}\n",
+    "solution": "def read_record(record):\n    name = record['display_name'] if 'display_name' in record else record['name']\n    return {'id': record['id'], 'display_name': name}\n",
+    "check": "from app import read_record\nassert read_record({'id': 1, 'name': 'old'}) == {'id': 1, 'display_name': 'old'}\nassert read_record({'id': 2, 'display_name': 'new'}) == {'id': 2, 'display_name': 'new'}\nassert read_record({'id': 3, 'name': 'old', 'display_name': 'new'}) == {'id': 3, 'display_name': 'new'}",
+    "expected": null,
+    "forbidden": ["webapp-testing"]
+  }
+]

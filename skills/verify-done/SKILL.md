@@ -8,18 +8,20 @@ metadata:
 
 # verify-done
 
-## Gates (this list is the kit's single source of truth; implement-tdd and fresh-review defer to it. Run in order, keep the output)
-0. **Performance (optional)**: only if the repo ships a real benchmark (script in package.json, `cargo bench`, pytest-benchmark) or records one in AGENTS.md: run it and compare to the last recorded baseline. Regression ≥5% = MAJOR. No baseline: skip and name it as skipped — never invent numbers.
+## Gates (implement-tdd and fresh-review defer here; run in order and keep output)
+For final verification, require the approved fresh-review snapshot. Run `bash <fresh-review-helper> check <snapshot-dir>` before gates and again after all checks and smoke tests. The helper is `scripts/review-snapshot.sh` under fresh-review. Missing snapshot or failed check → rerun fresh-review; never substitute another diff.
+
+0. **Performance (optional)**: run a repo benchmark if one exists, compare to a recorded baseline. Regression ≥5% = MAJOR. No baseline: report skipped.
 1. typecheck (cheapest failures first)
 2. lint
 3. unit tests
 4. tests of the affected package
 5. build
 
-Any failure: fix and restart from the gate that failed. Pre-existing failure (confirm with `git stash` if unsure): report it, do not fix it here.
+Any failure: fix and restart from the gate that failed. Edits invalidate approval. Confirm unrelated failures in a separate checkout; report, don't fix them here.
 
 ## Diff review
-Read `git diff --stat`, then the entire `git diff`, file by file.
+Read the approved `review.diff` file by file; derive the stat from it (`git apply --stat <review.diff>`). For any authorized commit, stage exactly the reviewed changes.
 - [ ] Changes outside the spec's scope? Revert them.
 - [ ] Debug leftovers: console.log, print, dbg!, new TODO, sleeps, commented code?
 - [ ] Secrets, tokens or .env content in the diff?
@@ -45,4 +47,4 @@ Start the project, walk the happy path plus one error case. Capture output or sc
 - Pending: known risks
 - Diff: N files, +A/−B, all within scope
 
-Anything not green means the status is not READY.
+Anything not green means the status is not READY. Remove the temporary snapshot after the verdict.

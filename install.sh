@@ -1,34 +1,47 @@
 #!/bin/bash
 # Install skills/* into an agent skills dir. Usage: ./install.sh [claude] [codex] [project]
 # No args = every host config dir that already exists, plus ./.agents/skills.
-set -u
-cd "$(dirname "$0")" || exit 1
-targets=""
-add() { case " $targets " in *" $1 "*) ;; *) targets="$targets $1" ;; esac; }
+set -e
+project_dir=$PWD
+source_dir=$(cd -- "$(dirname -- "$0")" && pwd)
+targets=()
+add() {
+  local dest
+  for dest in "${targets[@]}"; do
+    [ "$dest" != "$1" ] || return 0
+  done
+  targets+=("$1")
+}
 for arg in "$@"; do
   case "$arg" in
     claude) add "$HOME/.claude/skills" ;;
     codex)  add "$HOME/.codex/skills" ;;
-    project|agents) add "$PWD/.agents/skills" ;;
-    *) echo "unknown target '$arg' (use: claude codex project)"; exit 2 ;;
+    project|agents) add "$project_dir/.agents/skills" ;;
+    *) echo "unknown target '$arg' (use: claude codex project)" >&2; exit 2 ;;
   esac
 done
-if [ -z "$targets" ]; then
+if [ "$#" -eq 0 ]; then
   if [ -d "$HOME/.claude" ]; then add "$HOME/.claude/skills"; fi
   if [ -d "$HOME/.codex" ]; then add "$HOME/.codex/skills"; fi
-  add "$PWD/.agents/skills"
+  add "$project_dir/.agents/skills"
 fi
-rc=0
-for dest in $targets; do
-  mkdir -p "$dest" || rc=1
-  for src in skills/*/; do
-    name=$(basename "$src")
+for dest in "${targets[@]}"; do
+  mkdir -p -- "$dest"
+  backup=''
+  for src in "$source_dir"/skills/*/; do
     [ -f "${src}SKILL.md" ] || continue
-    if [ -e "${dest%/}/$name" ]; then
-      mv "${dest%/}/$name" "${dest%/}/$name.bak.$(date +%s)" || rc=1
+    name=${src%/}
+    name=${name##*/}
+    target=$dest/$name
+    if [ -e "$target" ] || [ -L "$target" ]; then
+      if [ -z "$backup" ]; then
+        backup=$(mktemp -d "$dest/../.tokenless-backup.XXXXXX")
+        echo "backups -> $backup"
+      fi
+      mv -- "$target" "$backup/$name"
     fi
-    cp -R "${src%/}" "${dest%/}/$name" || rc=1
-    echo "installed $name -> ${dest%/}/$name"
+    cp -R -- "${src%/}" "$target"
+    echo "installed $name -> $target"
   done
 done
-echo "done"; exit "$rc"
+echo "done"
