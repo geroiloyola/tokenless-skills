@@ -8,8 +8,6 @@ metadata:
 
 # verify-done
 
-"Done" means verified, not believed.
-
 ## Gates (this list is the kit's single source of truth; implement-tdd and fresh-review defer to it. Run in order, keep the output)
 0. **Performance (optional)**: only if the repo ships a real benchmark (script in package.json, `cargo bench`, pytest-benchmark) or records one in AGENTS.md: run it and compare to the last recorded baseline. Regression ≥5% = MAJOR. No baseline: skip and name it as skipped — never invent numbers.
 1. typecheck (cheapest failures first)

@@ -8,8 +8,6 @@ metadata:
 
 # repo-context
 
-Produce an AGENTS.md the agent can trust: facts verified, no prose.
-
 ## Steps
 1. If AGENTS.md exists, switch to update mode (step 5). Otherwise create it.
 2. Read in plan mode: 2–3 levels of the tree, package manifest, lockfiles, README, lint/test/CI config, and 3–5 representative files per layer.

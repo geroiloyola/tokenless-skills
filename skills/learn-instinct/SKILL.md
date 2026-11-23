@@ -8,8 +8,6 @@ metadata:
 
 # learn-instinct
 
-One instinct = one trigger + one action + confidence.
-
 ## Steps
 1. Write the instinct in this format and append it to `~/.agents/memory/lessons.md` (the kit's single memory file, shared with remember-correction):
    `- YYYY-MM-DD | type:instinct | scope:global|repo:<name> | rule: <imperative, ≤15 words> | conf: 0.5 | evidence: <where it worked> | expires: <date>`

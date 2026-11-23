@@ -1,97 +1,48 @@
 # tokenless-skills
 
-**14 ultra-light agent skills (369-572 body tokens each, 464 measured mean) with an always-loaded cost of 600 tokens.** The design goal: maximum practical agent workflow capability per token, without sacrificing verification discipline.
-
-> **Claims, honestly** — token figures are **measured with tiktoken `o200k_base`** by `scripts/measure_tokens.py --json evals/results/tokens-baseline.json` (raw JSON and command are in the repo): bodies 369-572 tokens per skill (mean 464); always-loaded description cost 600 total. The chars/4 fallback was validated against the tokenizer at 2.6% mean error. Worst case, if a session actually loaded every skill body: ~7,096 tokens (descriptions + all 14 bodies) — unrealistic; a session typically loads 2-4 skills (~1,000 tokens). Claims about matching the capability of larger frameworks, or any %-comparison against other skill systems, are **hypotheses: none has been benchmarked yet (round 0: the one approved verification session is blocked on host authentication — `evals/LOG.md`). The preregistered A/B/C/D harness (no skills / tokenless / superpowers core / ECC minimal profile; `evals/PREREGISTRATION.md`, raw results versioned in `evals/results/`) is built and its mechanics are fully tested: `make bench` runs it the moment a headless host CLI is authenticated. Until real runs exist, treat those comparisons as design intent, not evidence.**
+14 skills compactos de alta densidad para agentes (Agent Skills 1.0): flujo completo
+spec → plan → TDD → review → verificación, con coste de contexto mínimo. Cada skill
+cumple un presupuesto verificado por CI: descripción ≤55 tokens, cuerpo ≤600.
 
 ## Install
 
-The installer reads the repository, so distribution is clone-then-run (pinned clones give you git-level integrity):
-
 ```bash
-# Global (user scope: all agents on this machine with an existing config dir)
-git clone --depth 1 --branch v1.0.0 https://github.com/geroiloyola/tokenless-skills.git
-cd tokenless-skills && ./install.sh
-
-# Project-only (commits to your repo; installs the universal .agents/skills)
-./install.sh --scope project
-
-# Pick hosts explicitly (vibe, claude, codex, opencode, gemini, antigravity, cursor, agents, opencat)
-./install.sh --agent claude,codex
+git clone --depth 1 https://github.com/geroiloyola/tokenless-skills.git
+cd tokenless-skills && ./install.sh            # claude + codex detectados + .agents/skills
+./install.sh claude codex                      # hosts explícitos
+./install.sh project                           # solo ./.agents/skills (commiteable)
 ```
-
-> `curl .../install.sh | bash` is intentionally **not** supported — the installer reads sibling files. If you pipe it by mistake it exits with exact clone instructions and touches nothing.
-
-**Safety by construction** ([details in `docs/HOSTS.md`](docs/HOSTS.md)): overwriting an existing kit skill moves the old one to `~/.tsk-backup/` first; third-party skills are never touched; `--dry-run` previews every change; `--uninstall` removes only unmodified kit-owned skills and moves customized copies to the backup instead of deleting.
 
 ## Skills
 
-| Skill | Purpose |
-|-------|---------|
-| repo-context | Build verified AGENTS.md |
-| spec-brainstorm | Turn ambiguity into specs with acceptance criteria |
-| write-plan | Split work into 10–30 min tasks with file contracts |
-| implement-tdd | Red → Green → Refactor, test-first always |
-| systematic-debugging | Root-cause via falsifiable hypotheses |
-| verify-done | Gates + diff review + spec checks before "done" |
-| remember-correction | Persist user corrections as 1-line rules |
-| learn-instinct | Confidence-scored patterns that promote or prune |
-| subagent-execute | 1 task = 1 worktree = 1 subagent |
-| fresh-review | Blocking, read-only review in clean context |
-| webapp-testing | Browser: console, network, a11y (with script + MCP ladder) |
-| security-review | Secrets, injection, authz over the diff |
-| design-review | Aesthetic direction + contrast script audit |
-| eval-harness | Re-run 5 fixed tasks on every kit change |
+| Skill | Uso | body tok |
+|-------|-----|---------:|
+| repo-context | AGENTS.md verificado con comandos y patrones | 466 |
+| spec-brainstorm | Petición vaga → spec con criterios observables | 441 |
+| write-plan | Spec → tareas de 10–30 min con archivos exactos | 431 |
+| implement-tdd | RED → GREEN → REFACTOR por unidad de trabajo | 580 |
+| systematic-debugging | Causa raíz vía hipótesis falsables | 411 |
+| verify-done | Gates (typecheck/lint/tests/build) + revisión del diff | 466 |
+| remember-correction | Corrección del usuario → regla de 1 línea | 398 |
+| learn-instinct | Patrones con confianza (0.2–0.9) que se podan | 411 |
+| subagent-execute | 1 tarea = 1 worktree = 1 subagente | 526 |
+| fresh-review | Review bloqueante en contexto limpio, no sesgado | 467 |
+| webapp-testing | Browser real: consola, red, a11y | 393 |
+| security-review | Secretos, inyección, authz sobre el diff | 509 |
+| design-review | Dirección estética + token set + auditoría | 596 |
+| eval-harness | Re-ejecutar 5 tareas fijas en cada cambio del kit | 358 |
 
-Protocol: `spec-brainstorm → write-plan → implement-tdd → fresh-review → verify-done`, with `subagent-execute` as parallel runner and the two memory skills accumulating rules between sessions.
+Body total: 6453 tokens (o200k_base, `python3 scripts/measure_tokens.py`);
+coste always-loaded (descripciones): ~660 tokens.
 
-## Supported hosts
+## Flujo
 
-✅ Claude Code • ✅ Codex • ✅ OpenCode • ✅ Vibe (incl. hooks: security guard + QA) • ✅ Gemini CLI • ⚠️ Antigravity • ⚠️ Cursor • ⚠️ Any [Agent Skills 1.0](https://agentskills.io) host
+`spec-brainstorm → write-plan → implement-tdd → fresh-review → verify-done`,
+con `subagent-execute` como runner paralelo y los dos skills de memoria
+(`remember-correction`, `learn-instinct`) acumulando reglas entre sesiones.
 
-⚠️ = installer creates the right directories and Agent Skills-conformant folders, but check `docs/HOSTS.md` for per-host capability (activation, memory loading, hooks) before relying on it. Do not assume "files copied" means "features active".
+## Presupuesto
 
-## Usage
-
-Skills are standard Agent Skills 1.0 folders — your host discovers them automatically; invoke by the host's convention (`/` picker, `$name`, `@name`, or just describe the task to match a description). Start with `repo-context` in a new repo: it builds the AGENTS.md every other skill consults.
-
-Editing skills? Author against `skills/SKILL_MASTER.md`, then validate:
-
-```bash
-python3 scripts/check_skills.py --strict
-```
-
-## Update / uninstall
-
-```bash
-git -C tokenless-skills pull && cd tokenless-skills && ./install.sh   # backs up what it replaces
-./install.sh --uninstall            # dry-run: lists what would go
-./install.sh --uninstall --yes      # applies kit-owned skills
-```
-
-Uninstall is conservative: frontmatter `name:` must match a kit skill, and the
-installed copy must be byte-identical to the kit's before it is removed.
-**Customized or older-version copies are moved to `~/.tsk-backup/` (or
-`./.tsk-backup/` in project scope), never deleted.** Third-party skills and
-symlinks are left untouched. `~/.agents/memory/` (lessons, instincts) — it is
-yours and survives uninstall. Backups are never auto-deleted; prune
-`.tsk-backup` manually when convenient.
-
-## Security limitations (read this)
-
-The Vibe-mode guard (`extras/vibe/guard.py`) is a **best-effort accident filter, not a sandbox, not a security boundary**; bash mode fails open and protect mode fails closed; obfuscated/in-interpreter attacks are outside its threat model by construction. Full analysis and known-bypass ledger: `docs/SECURITY.md`. Report issues per `SECURITY.md`.
-
-## Project layout
-
-```
-skills/            14 skills + SKILL_MASTER.md (authoring doctrine)
-evals/             preregistered A/B/C/D benchmark: tasks, triggers, harness, results
-                   (PREREGISTRATION.md is frozen BEFORE runs; LOG.md is the iteration ledger)
-scripts/           check_skills.py (doctrine validation), bench.py (headless harness only)
-tests/             guard / checker / installer suites, python3 tests/run_all.py
-extras/vibe/       Vibe adapter (guard.py, qa.py, hooks.toml, reviewer/plan agents)
-extras/chatbot/    concatenated single-file export for chat UIs
-docs/              HOSTS.md (compat matrix), SECURITY.md (threat model)
-```
-
-Contributing: `CONTRIBUTING.md` — the short version: a change that grows context must measurably grow capability. Changelog: `CHANGELOG.md`. Releases: `RELEASE.md`. License: MIT (`LICENSE`).
+CI falla si un skill supera desc ≤55 / body ≤600 tokens (`scripts/measure_tokens.py`).
+Hosts: Claude Code, Codex, OpenCode, Gemini CLI, Cursor, y cualquier host Agent Skills 1.0.
+License: MIT.

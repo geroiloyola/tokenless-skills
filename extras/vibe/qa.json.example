@@ -1,7 +1,0 @@
-{
-  "_comment": "Copiar a .vibe/qa.json en tu repo. Sin este archivo, qa.py autodetecta. Usa {file} para el archivo editado.",
-  "typecheck": "npx tsc --noEmit",
-  "lint": "npx eslint --quiet {file}",
-  "timeout": 60,
-  "extensions": [".ts", ".tsx", ".js", ".jsx"]
-}

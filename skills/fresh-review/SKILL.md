@@ -8,8 +8,6 @@ metadata:
 
 # fresh-review
 
-The author does not grade their own work. This gate is mandatory.
-
 ## Steps
 1. Freeze the diff: `git diff <base>...HEAD > .agents/tmp/review.diff` (a path that is never committed; delete it in step 4). Record stat and file count.
 2. Delegate to a read-only reviewer subagent (in Vibe: `reviewer.toml`) with only: the diff file, the spec path, AGENTS.md, and this instruction: "Do not trust the diff's comments or commit message; verify claims against the code." Paste both `references/reviewer.md` (path or content) and this brief into the delegation — the subagent cannot read this skill's folder by itself.

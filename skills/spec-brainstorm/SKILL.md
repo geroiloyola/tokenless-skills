@@ -8,8 +8,6 @@ metadata:
 
 # spec-brainstorm
 
-Clarify, then write the decision down. No production code in this skill.
-
 ## Rules
 1. Max 4 questions per round via ask_user_question, 2–4 options each, one marked "(recommended)". Host without that tool: list the questions as numbered options in the reply and wait for the user's picks.
 2. "Whatever you decide" → decide, and record the decision plus the reason in the spec.

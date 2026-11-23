@@ -8,8 +8,6 @@ metadata:
 
 # eval-harness
 
-A change without a rerun is an opinion. Five fixed tasks prove it.
-
 ## Setup (once per repo)
 1. Pick 5 real tasks: 1 small feature, 1 bug, 1 refactor, 1 UI change, 1 migration or contract change.
 2. Save each under `prompts/eval/` as `0N-<slug>.md` with the 5-block anatomy

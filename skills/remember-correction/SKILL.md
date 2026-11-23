@@ -8,8 +8,6 @@ metadata:
 
 # remember-correction
 
-A correction is a bug report against your behavior. Fix it permanently.
-
 ## Steps
 1. Stop the current approach. Restate the correction in one line and confirm it is understood.
 2. Grep `~/.agents/memory/lessons.md` and the repo AGENTS.md. If a rule already covers it, tighten that line instead of adding a duplicate.

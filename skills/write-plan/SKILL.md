@@ -8,8 +8,6 @@ metadata:
 
 # write-plan
 
-A plan another agent could execute without you.
-
 ## Steps
 1. Grep and read the files that already do something similar. Name existing files to modify and new files to create; if a name is unknown, write the pattern and say so.
 2. Choose the most boring implementation that satisfies the spec. YAGNI: no abstraction for future needs.

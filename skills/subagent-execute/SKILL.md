@@ -8,8 +8,6 @@ metadata:
 
 # subagent-execute
 
-One task per worktree. The main session plans and reviews, never edits.
-
 ## Steps
 1. Pick the next pending task from `specs/<slug>-plan.md`. Tasks with `touches:` labels that share a file never run in parallel; if the plan omits `touches:`, derive it from the task's Files list.
 2. Create an isolated tree:

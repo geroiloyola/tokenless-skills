@@ -8,8 +8,6 @@ metadata:
 
 # systematic-debugging
 
-Reproduce → isolate → hypothesize → instrument → fix cause → verify.
-
 ## Steps
 1. Reproduce with the exact command, input, runtime and flags. Intermittent: run N times and record the failure rate. No reliable repro: stop and build one, including a failing test.
 2. Read the trace bottom-up (cause first) and find the first frame that is your code, not the framework's.

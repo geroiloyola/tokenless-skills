@@ -8,8 +8,6 @@ metadata:
 
 # webapp-testing
 
-A passing unit test is not evidence that a page renders. Prove it in a browser.
-
 ## Order of preference
 1. Playwright MCP tools if this session has them (Vibe exposes them as `<server>_<tool>`, e.g. `playwright_browser_navigate`). navigate → snapshot → click → screenshot.
 2. `scripts/webcheck.mjs` from this skill when Playwright is in the repo or can be added. Exit 2 = Playwright absent → fall to rung 3 (manual) and say so.
