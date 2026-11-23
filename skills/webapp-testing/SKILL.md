@@ -9,7 +9,7 @@ metadata:
 # webapp-testing
 
 ## Order of preference
-1. Playwright MCP tools if this session has them (Vibe exposes them as `<server>_<tool>`, e.g. `playwright_browser_navigate`). navigate → snapshot → click → screenshot.
+1. Playwright MCP tools if this session has them. navigate → snapshot → click → screenshot.
 2. `scripts/webcheck.mjs` from this skill when Playwright is in the repo or can be added. Exit 2 = Playwright absent → fall to rung 3 (manual) and say so.
 3. Manual steps only as a last resort, and say explicitly that it was not automated.
 

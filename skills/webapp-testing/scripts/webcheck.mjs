@@ -26,7 +26,7 @@ const flag = (name, def) => {
   const i = argv.indexOf(name);
   return i > -1 && argv[i + 1] && !argv[i + 1].startsWith("--") ? argv[i + 1] : def;
 };
-const outDir = flag("--out", ".vibe/artifacts");
+const outDir = flag("--out", ".agents/artifacts");
 const width = Number(flag("--width", 1440));
 const waitMs = Number(flag("--wait", 800));
 const fullPage = argv.includes("--full");

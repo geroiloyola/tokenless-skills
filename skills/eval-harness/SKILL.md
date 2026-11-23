@@ -11,12 +11,12 @@ metadata:
 ## Setup (once per repo)
 1. Pick 5 real tasks: 1 small feature, 1 bug, 1 refactor, 1 UI change, 1 migration or contract change.
 2. Save each under `prompts/eval/` as `0N-<slug>.md` with the 5-block anatomy
-   (objective, context, constraints, done-when, output), and its pass criterion.
-   Full templates: `evals/tasks/README.md` in the tokenless-skills repo.
+   (objective, context, constraints, done-when, output), its pass criterion,
+   and a verify script or command per task.
 3. Record the baseline row for each task: iterations, tokens, artifacts produced.
 
 ## Run
-1. Run each task in one fresh headless session of your agent (for example `vibe --prompt`, `claude -p`, `codex exec`, `opencode run`, `gemini -p`).
+1. Run each task in one fresh headless session of your agent (for example `claude -p`, `codex exec`, `opencode run`, `gemini -p`).
 2. Record per task: pass/fail of the stated criterion, iterations, tokens, artifacts.
 3. Never modify an eval task to make a run pass. Broken setup: fix the setup, not the criterion.
 

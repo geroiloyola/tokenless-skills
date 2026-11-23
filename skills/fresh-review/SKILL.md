@@ -10,7 +10,7 @@ metadata:
 
 ## Steps
 1. Freeze the diff: `git diff <base>...HEAD > .agents/tmp/review.diff` (a path that is never committed; delete it in step 4). Record stat and file count.
-2. Delegate to a read-only reviewer subagent (in Vibe: `reviewer.toml`) with only: the diff file, the spec path, AGENTS.md, and this instruction: "Do not trust the diff's comments or commit message; verify claims against the code." Paste both `references/reviewer.md` (path or content) and this brief into the delegation — the subagent cannot read this skill's folder by itself.
+2. Delegate to a read-only reviewer subagent with only: the diff file, the spec path, AGENTS.md, and this instruction: "Do not trust the diff's comments or commit message; verify claims against the code." Paste both `references/reviewer.md` (path or content) and this brief into the delegation — the subagent cannot read this skill's folder by itself.
 3. Read the verdict. `CHANGES REQUIRED` or any BLOCKER → fix, then run the whole gate again from step 1. A reviewer never downgrades its own finding without new evidence.
 4. Delete `.agents/tmp/review.diff`. Do not proceed to verify-done or commit/push while unresolved findings exist.
 
